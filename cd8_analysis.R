@@ -14,15 +14,15 @@ library(Hmisc) # pathway analysis
 library(pbmcapply)  # Provides progress bar support
 library(Ake)
 library(presto)
-source("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/rdaMain072025.R")  
+source("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/main_github.R") 
 
 ####### load data #######
 covariate_df = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/covariate_data.csv")
-donors_to_use_per_gene = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/cd8_donors_for_all_genes_list_no_ribo.RDS")
+donors_to_use_per_gene = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/updated_cd8_donors_for_all_genes_list_no_ribo.RDS")
 donors_to_use_per_gene = filter_genes_by_disease_donor_counts(donors_to_use_per_gene, covariate_df, min_donors = 20)
 genes_of_interest = names(donors_to_use_per_gene)
-sObj_metadata = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/cd8_seurat_metadata.RDS")
-exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/cd8_seurat_exprMat.RDS")
+sObj_metadata = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/updated_github_cd8_seurat_metadata.RDS")
+exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/updated_github_cd8_seurat_exprMat.RDS")
 
 #  ---- parallel computing  ----
 print(length(names(donors_to_use_per_gene)))
@@ -31,7 +31,7 @@ p = 2
 cd8_res_hli_list <- setNames(pbmclapply(genes_of_interest, function(name) {
   tryCatch({
     exprMat1 = exprMatReal[name, , drop = F]
-    stablerunSeuratCounts_Concise(exprMat = exprMat1, donor_list = donors_to_use_per_gene[[name]], sObj_meta = sObj_metadata, p = 2, plot_flag = F) 
+    stablerunSeuratCounts_Concise(exprMat = exprMat1, donor_list = donors_to_use_per_gene[[name]], sObj_meta = sObj_metadata, p = p, plot_flag = F) 
   }, error = function(e) {
     message(paste("Error in processing:", name, "-", e$message))
     return(NULL)

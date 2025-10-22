@@ -808,29 +808,41 @@ get_individual_sef_counts_hli_model = function(donor_id, gene, exprMat, sObj_met
   print("done")
   
 }
-run_go_enrichment_plot <- function(gene_symbols, orgDb = org.Hs.eg.db, ontology = "BP", minGSSize = 10, maxGSSize = 200) {
+run_go_enrichment_plot <- function(gene_symbols, orgDb = org.Hs.eg.db, ontology = "BP", 
+                                   cutoff = 0.6, universe = NULL, pvalueCutoff = 0.05,
+                                   minGSSize = 10, maxGSSize = 200) {
   require(clusterProfiler)
   require(enrichplot)
-  require(org.Hs.eg.db)  # load if default used
+  require(org.Hs.eg.db) 
   require(ggplot2)
   gene_df <- clusterProfiler::bitr(gene_symbols,
                                    fromType = "SYMBOL",
                                    toType = "ENTREZID",
                                    OrgDb = orgDb)
+  if( is.null(universe) == F){
+    entrez_universe = clusterProfiler::bitr(universe,
+                                            fromType = "SYMBOL",
+                                            toType = "ENTREZID",
+                                            OrgDb = orgDb)$ENTREZID
+  } else{
+    entrez_universe = NULL
+  }
+  
   if (nrow(gene_df) == 0) {
     stop("No gene symbols were converted to Entrez IDs. Check your gene list.")
   }
   # GO enrichment
   ego <- enrichGO(gene = gene_df$ENTREZID,
                   OrgDb = orgDb,
+                  universe = entrez_universe,
+                  pvalueCutoff = pvalueCutoff,
                   minGSSize = minGSSize,
                   maxGSSize = maxGSSize,
                   keyType = "ENTREZID",
                   ont = ontology,
                   pAdjustMethod = "BH",
-                  qvalueCutoff = 0.05,
                   readable = TRUE)
-  ego = clusterProfiler::simplify(ego, cutoff = 0.6, by = "p.adjust")
+  ego = clusterProfiler::simplify(ego, cutoff = cutoff, by = "p.adjust")
 }
 
 

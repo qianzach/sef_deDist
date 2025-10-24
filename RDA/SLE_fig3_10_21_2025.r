@@ -11,11 +11,9 @@ library(pbmcapply)
 library(Ake)
 source("./density_estimation/sef_lupus_results/exploration/to_github_repo/main_github_10_14_2025.R") 
 
-# look into gene: IFI6 cM, 
-
 ####### load data ####### 
-cell_type = "cd4"
-# cell_type = "cM"
+# cell_type = "cd4"
+cell_type = "cM"
 # cell_type = "cd8"
 covariate_df = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/DATA/covariate_data.csv")
 
@@ -40,14 +38,14 @@ print(length(genes_of_interest))
 
 # specific_genes = c("S100A9", "ISG15","CYBA") # cM
 # specific_genes = c("HLA-A","NKG7", "LGALS1") # cd8
-# specific_genes = c("B2M", "IL32","KLF6","TMSB10") # cd4 
+# specific_genes = c("B2M", "IL32","KLF6") # cd4
 
 genes_of_interest = names(donors_to_use_per_gene)
 don = "1101"
 print(length(genes_of_interest))
 genes_of_interest = specific_genes
 p = 2
-res_hli_list <- setNames(pbmclapply(genes_of_interest, function(name) {
+res_hli_list <- setNames(pbmclapply(genes_of_interest, function(name) { #run sef regression for the genes of interest
   tryCatch({
     exprMat1 = exprMatReal[name, , drop = F]
     stablerunSeuratCounts_Concise(exprMat = exprMat1, donor_list = donors_to_use_per_gene[[name]], sObj_meta = sObj_metadata, p = p, plot_flag = F) 

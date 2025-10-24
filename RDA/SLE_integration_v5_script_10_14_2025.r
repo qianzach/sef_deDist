@@ -14,3 +14,9 @@ sObj <- RunUMAP(sObj, dims = 1:30)
 sObj = IntegrateLayers(object = sObj, method = "RPCAIntegration", orig.reduction = "pca", normalization.method ="SCT")
 sObj <- PrepSCTFindMarkers(object = sObj)
 saveRDS(sObj, paste0(cell_type,"_sObj_sct.RDS"))
+
+# this isn't really needed
+sObj <- FindNeighbors(sObj, dims = 1:30, reduction = "integrated.dr")
+sObj <- FindClusters(sObj, resolution = 2)
+sObj <- JoinLayers(sObj)
+sObj <- PrepSCTFindMarkers(object = sObj) #running again does not affect magnitude, but is necessary for adjusted counts.

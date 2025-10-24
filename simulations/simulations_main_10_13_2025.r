@@ -15,10 +15,13 @@ library(doParallel)
 library(Hmisc)
 library(Ake)
 library(truncnorm)
+library(Matrix)
 
 ########## 1. DATA GENERATION FUNCTIONS ##########
 simu_poigamma_vary_cellcts = function(seed = 100, lower = 300, upper = 1000, alpha1, alpha2, beta1, beta2, n1, n2){
-  # Simulate Poisson-Gamma mixture model data with alpha and beta are the shape and size parameters
+  # function: simulate Poisson-Gamma mixture model data with alpha and beta are the shape and size parameters
+  # input: seed; lower bound; upper bound; alpha group 1/2; beta group 1/2, number of samples in group 1/2
+  # output: list of 2 lists (length n1 and n2) with each element being an array 
   Y1_list <- vector("list", n1) 
   Y2_list <- vector("list", n2)
   set.seed(seed = seed)
@@ -36,8 +39,10 @@ simu_poigamma_vary_cellcts = function(seed = 100, lower = 300, upper = 1000, alp
 }
 simu_zinb_vary_cellcts <- function(n1, n2, mu, mu2, theta, sigma_sq = 0.5, pi = 0.5, pi2 = 0.5,
                                    b_pi = 1, b_theta = 1, de_type = 'dispersion', seed = 100, lower = 300, upper = 1000) {
+  # function: simulate Zero-inflated Negative Binomial model data, offering dispersion or mixture
+  # input: seed; lower bound; upper bound; alpha group 1/2; beta group 1/2, number of samples in group 1/2
+  # output: list of 2 lists (length n1 and n2) with each element being an array 
   set.seed(seed)
-  
   # Output lists
   Y1_list <- vector("list", n1)
   Y2_list <- vector("list", n2)
@@ -117,28 +122,30 @@ simu_zinb_vary_cellcts <- function(n1, n2, mu, mu2, theta, sigma_sq = 0.5, pi = 
 
 ########## 2. SEF HELPER FUNCTIONS ##########
 #  ---- DISCRETE GAUSSIAN KERNEL FUNCTION ----
-continuous_discrete_kde <- function(data, eval_points, bw = 0.25) {
-  dx <- diff(eval_points)[1]  # Step size between grid points; assumes equally spaced grid
+continuous_discrete_kde <- function(y, eval_points, bw = 0.25) {
+  # function: continuous gaussian kernel density estimate evaluated at the integer values the data is in 
+  # input: expression array, points to evaluate (similar to est_midpoints)
+  # output: density estimate evaluated at parameter-passed points
+  dx <- diff(eval_points)[1]  # step size between grid points; assumes equally spaced grid
   raw_density <- sapply(eval_points, function(x) {
-    mean(dnorm((x - data) / bw)) / bw
+    mean(dnorm((x - y) / bw)) / bw
   })
   normalized_density <- raw_density / sum(raw_density * dx)
   return(normalized_density)
 }
 #  ---- BIN COUNT HELPER FOR DGK ----
 get_countdata_bin_counts = function(Y, grid_points){
-  # Used for single cell data
+  # function: tabulates expression values for each individual into bins with estimated grid points
+  # input: list of arrays; grid points to use for bins
+  # output: n x K matrix of bins, K is # of grid points
   
   n = length(Y)
   K = length(grid_points)
-  
-  # Initialize an n x K matrix to store bin counts
-  counts_matrix = matrix(0, nrow = n, ncol = K)
+  counts_matrix = matrix(0, nrow = n, ncol = K) # init n x K matrix to store bin counts
   
   for (i in seq_along(Y)) {
-    # Factor ensures tabulation only over grid_points
-    tab <- table(factor(Y[[i]], levels = grid_points))
-    counts_matrix[i, ] <- as.numeric(tab)
+    tab <- table(factor(Y[[i]], levels = grid_points)) #factor() to ensure that values potentially not in a bin are tabulated still before counting
+    counts_matrix[i, ] <- as.numeric(tab) #revert back to integers
   }
   
   return(counts_matrix)
@@ -147,6 +154,9 @@ get_countdata_bin_counts = function(Y, grid_points){
 #  ---- POWER ANALYSIS SPECIFIC  ----
 
 gamma_params <- function(mu, V) {
+  # function: given mean and variance, provides alpha and beta values to match the params
+  # input: mean; variance
+  # output: alpha; beta
   if(V <= mu) stop("Variance must be greater than the mean for overdispersion.")
   alpha <- mu^2/(V - mu)
   beta  <- mu/(V - mu)
@@ -154,47 +164,45 @@ gamma_params <- function(mu, V) {
 }
 
 compute_moments = function(y, p) {
-  #computes pth MOMENTS and stores as a matrix
   return(sapply(1:p, function(k) y^k))
 } 
 
 mom_cov_diff_cell_cts = function(Y, p) {
-  # Compute covariance matrix for Moments (for MoM estimator) with different cell counts
+  # function: compute covariance matrix for Moments (for MoM estimator) with different cell counts
+  # input: list of arrays of expression values; moments to test
+  # output: covariance matrix (p x p)
   n = length(Y)  # number of individuals (length of the list)
   total_samples <- 0
-  overall_sum <- rep(0, p)  # Sum for overall mean
-  within_var_sum <- matrix(0, nrow = p, ncol = p)  # Within-individual variance
-  between_var_sum <- matrix(0, nrow = p, ncol = p)  # Between-individual variance 
-  
+  overall_sum <- rep(0, p)  # sum of overall mean
+  within_var_sum <- matrix(0, nrow = p, ncol = p)  # within-individual variance contributions
+  between_var_sum <- matrix(0, nrow = p, ncol = p)  # between-individual variance contributions 
   mean_list = matrix(0, nrow = n, ncol = p)  # matrix of p moments for each individual
-  m_vector <- numeric(n)  # Store the number of samples for each individual
+  m_vector <- numeric(n)  # individual-wise cell counts
   
-  # Within-individual variance
-  for (i in 1:n) {  # iterate for each individual
-    samples_i = Y[[i]]  # Access the ith individual's data
+  # within-individual variance
+  for (i in 1:n) {  # iterate through individual
+    samples_i = Y[[i]] # expression array for individual i
     m_i = length(samples_i) 
     m_vector[i] = m_i
     mean_samples_i = mean(samples_i)
     
-    # Compute the moments for each sample
-    moments_i = t(sapply(samples_i, compute_moments, p = p))  # ncell_i x p moment
+    moments_i = t(sapply(samples_i, compute_moments, p = p))  # ncell_i x p moment 
     
-    mean_t_i = colMeans(moments_i)  # Compute the mean of p moments for individual
+    mean_t_i = colMeans(moments_i)  # compute mean of p moments for individual
     mean_list[i, ] = mean_t_i
     
-    # Update overall sum for computing the overall mean
+    # update overall sum for computing overall mean
     overall_sum = overall_sum + m_i * mean_t_i
     total_samples = total_samples + m_i
     
-    # Compute within-individual variance
+    # compute within-individual variance
     diffs = t(moments_i) - mean_t_i  # (T_i - Tbar_i)
     within_var_sum = within_var_sum + diffs %*% t(diffs)  # sum (T_i - Tbar_i)^2
   }
   
-  # Compute the overall mean of the moments
-  overall_mean <- overall_sum / total_samples
+  overall_mean <- overall_sum / total_samples # compute overall mean of moments
   
-  # Between-individual variance
+  # between-individual variance
   for (i in 1:n) {
     m_i = m_vector[i]
     mean_t_i = mean_list[i, ]
@@ -202,29 +210,33 @@ mom_cov_diff_cell_cts = function(Y, p) {
     between_var_sum <- between_var_sum + m_i^2 * (diff %*% t(diff))  # m_i^2, not m_i
   }
   
-  # Covariance calculation
-  Cov = within_var_sum / total_samples^2 + between_var_sum / total_samples^2
+  Cov = within_var_sum / total_samples^2 + between_var_sum / total_samples^2 # covariance calculation
   return(Cov)
 }
 
 compute_empirical_power = function(pval_matrix, alpha = 0.05){
-  #compute empirical power using the #of rejections we make divided by the total number of simulations
+  # function: compute empirical power using the #of rejections we make divided by the total number of simulations
+  # input: pvalue matrix
+  # output: array of type i error values
   pmat = as.matrix(pval_matrix)
   return(colMeans(pmat < alpha))
 }
 
 gg_qqplot <- function(ps, ci = 0.95) {
-  #plotting qq plot with 95% confidence interval band 
-  n  <- length(ps)
-  df <- data.frame(
+  # function: plotting qq plot with 95% confidence interval band using input of raw p-values
+  # input: p-value array; confidence interval 
+  # output: QQ plot
+  n  = length(ps)
+  df = data.frame(
     observed = -log10(sort(ps)),
     expected = -log10(ppoints(n)),
     clower   = -log10(qbeta(p = (1 - ci) / 2, shape1 = 1:n, shape2 = n:1)),
     cupper   = -log10(qbeta(p = (1 + ci) / 2, shape1 = 1:n, shape2 = n:1))
   )
-  log10Pe <- expression(paste("Expected -log"[10], plain(P)))
-  log10Po <- expression(paste("Observed -log"[10], plain(P)))
-  max_lim <- max(df$expected, df$observed, df$clower, df$cupper, na.rm = TRUE) 
+  log10Pe = expression(paste("Expected -log"[10], plain(P)))
+  log10Po = expression(paste("Observed -log"[10], plain(P)))
+  max_lim = max(df$expected, df$observed, df$clower, df$cupper, na.rm = TRUE) 
+  
   ggplot(df) +
     geom_ribbon(
       mapping = aes(x = expected, ymin = clower, ymax = cupper),
@@ -237,7 +249,7 @@ gg_qqplot <- function(ps, ci = 0.95) {
 } 
 ########## 3. SEF FUNCTIONS ##########
 #  ---- POISSON GAMMA  ----
-simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,  lower = 300, upper = 1000, n1 = 100, n2 = 100, idx, alpha1, alpha2, beta1, beta2){
+simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,  lower = 300, upper = 1000, n1 = 100, n2 = 100, plot_flag = F, idx, alpha1, alpha2, beta1, beta2){
   if (de_type == "mean") {
     effect_size = alpha2/beta2 - alpha1/beta1
   } else if(de_type == "variance"){
@@ -269,7 +281,7 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
     K = length(est_midpoints)
     print(paste0("Number of midpoints K not specified. Using total number of boundary points in pooled data as new K: ", K))
     
-    carrier_est = continuous_discrete_kde(data = y_agg, eval_points = est_midpoints, bw = 0.05)
+    carrier_est = continuous_discrete_kde(y = y_agg, eval_points = est_midpoints, bw = 0.05)
     
   } else{
     est_grid = seq(l, u, length.out = K + 1)
@@ -281,20 +293,24 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
   hist_df <- data.frame(y_agg = y_agg)
   breaks <- seq(l, u, length.out = K + 2)
   line_df <- data.frame(x = est_midpoints, y = carrier_est)
-  carrier_plot <- ggplot(hist_df, aes(x = y_agg)) +
-    geom_histogram(aes(y = ..density..),
-                   breaks = breaks,
-                   fill = "skyblue1", alpha = 0.75,
-                   color = "white") +
-    geom_line(data = line_df, aes(x = x, y = y),
-              color = "dodgerblue", linewidth = 1) +
-    labs(
-      title = "",
-      x = "Expression",
-      y = "Density"
-    ) +
-    theme_minimal()
-  print(carrier_plot)
+  carrier_plot = NULL
+  
+  if(plot_flag == T){
+    carrier_plot <- ggplot(hist_df, aes(x = y_agg)) +
+      geom_histogram(aes(y = ..density..),
+                     breaks = breaks,
+                     fill = "skyblue1", alpha = 0.75,
+                     color = "white") +
+      geom_line(data = line_df, aes(x = x, y = y),
+                color = "dodgerblue", linewidth = 1) +
+      labs(
+        title = "",
+        x = "Expression",
+        y = "Density"
+      ) +
+      theme_minimal()
+    print(carrier_plot)
+  }
   
   binwidth = (u - l)/K #in theory should be equal to diff(est_midpoints)
   
@@ -376,14 +392,17 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
     sef_value = c(sef_df1, sef_df2),
     group = factor(rep(c("Group 1", "Group 2"), each = length(est_midpoints)))
   )
-  plt = ggplot(df_plot, aes(x = est_midpoints, y = sef_value, fill = group, color = group)) +
-    geom_line(size = 1) +
-    geom_ribbon(aes(ymin = 0, ymax = sef_value), alpha = 0.3, color = NA) +
-    scale_color_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
-    scale_fill_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
-    labs(x = "Expression", y = "Density", color = "Group", fill = "Group") +
-    theme_minimal()
-  print(plt)
+  plt = NULL
+  if(plot_flag == T){
+    plt = ggplot(df_plot, aes(x = est_midpoints, y = sef_value, fill = group, color = group)) +
+      geom_line(size = 1) +
+      geom_ribbon(aes(ymin = 0, ymax = sef_value), alpha = 0.3, color = NA) +
+      scale_color_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
+      scale_fill_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
+      labs(x = "Expression", y = "Density", color = "Group", fill = "Group") +
+      theme_minimal()
+    print(plt)
+  }
   
   # marginal distribution 
   G_1 = t(X) %*% ( sef_df1 * X )*cellSum1/sum(sef_df1) 
@@ -473,7 +492,7 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
               carrier_plt = carrier_plot, comparison_plt = plt, breaks = breaks))
 }
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL  ----
-simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq = 0.5, theta, b_theta = 1, b_pi = 1, pi = 0.5, pi2 = 0.5, lower = 300, upper = 1000, K = NULL, p = 2, repID = NULL){
+simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq = 0.5, theta, b_theta = 1, b_pi = 1, pi = 0.5, pi2 = 0.5, lower = 300, upper = 1000, K = NULL, p = 2, repID = NULL, plot_flag = F){
   #save values: effect size, binwidth, betas, covariances
   if (de_type == "dispersion") {
     theta2 = b_theta*theta
@@ -505,8 +524,7 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
     K = length(est_midpoints)
     print(paste0("Number of midpoints K not specified. Using total number of boundary points in pooled data as new K: ", K))
     
-    carrier_est = continuous_discrete_kde(data = y_agg, eval_points = est_midpoints, bw = 0.05)
-    
+    carrier_est = continuous_discrete_kde(y = y_agg, eval_points = est_midpoints, bw = 0.05)
     
   } else{
     est_grid = seq(l, u, length.out = K + 1)
@@ -518,20 +536,24 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   hist_df <- data.frame(y_agg = y_agg)
   breaks <- seq(l, u, length.out = K + 2)
   line_df <- data.frame(x = est_midpoints, y = carrier_est)
-  carrier_plot <- ggplot(hist_df, aes(x = y_agg)) +
-    geom_histogram(aes(y = ..density..),
-                   breaks = breaks,
-                   fill = "skyblue1", alpha = 0.75,
-                   color = "white") +
-    geom_line(data = line_df, aes(x = x, y = y),
-              color = "dodgerblue", linewidth = 1) +
-    labs(
-      title = "",
-      x = "Expression",
-      y = "Density"
-    ) +
-    theme_minimal()
-  print(carrier_plot)
+  
+  carrier_plot = NULL
+  if(plot_flag == T){
+    carrier_plot <- ggplot(hist_df, aes(x = y_agg)) +
+      geom_histogram(aes(y = ..density..),
+                     breaks = breaks,
+                     fill = "skyblue1", alpha = 0.75,
+                     color = "white") +
+      geom_line(data = line_df, aes(x = x, y = y),
+                color = "dodgerblue", linewidth = 1) +
+      labs(
+        title = "",
+        x = "Expression",
+        y = "Density"
+      ) +
+      theme_minimal()
+    print(carrier_plot)
+  }
   
   Smat1 = matrix(NA, nrow = n1, ncol = K) #group 1 COUNTS 
   Smat2 = matrix(NA, nrow = n2, ncol = K) #group 2 COUNTS 
@@ -616,14 +638,17 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
     sef_value = c(sef_df1, sef_df2),
     group = factor(rep(c("Group 1", "Group 2"), each = length(est_midpoints)))
   )
-  plt = ggplot(df_plot, aes(x = est_midpoints, y = sef_value, fill = group, color = group)) +
-    geom_line(size = 1) +
-    geom_ribbon(aes(ymin = 0, ymax = sef_value), alpha = 0.3, color = NA) +
-    scale_color_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
-    scale_fill_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
-    labs(x = "Expression", y = "Density", color = "Group", fill = "Group") +
-    theme_minimal()
-  print(plt)
+  plt = NULL
+  if(plot_flag == T){
+    plt = ggplot(df_plot, aes(x = est_midpoints, y = sef_value, fill = group, color = group)) +
+      geom_line(size = 1) +
+      geom_ribbon(aes(ymin = 0, ymax = sef_value), alpha = 0.3, color = NA) +
+      scale_color_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
+      scale_fill_manual(values = c("Group 1" = "firebrick", "Group 2" = "dodgerblue")) +
+      labs(x = "Expression", y = "Density", color = "Group", fill = "Group") +
+      theme_minimal()
+    print(plt)
+  }
   
   # marginal distribution
   G_1 = t(X) %*% ( sef_df1 * X )*cellSum1/sum(sef_df1) 
@@ -663,6 +688,9 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
 ########## 4. COMPETING METHOD FUNCTIONS ##########
 #  ---- METHOD OF MOMENTS  ----
 simulateMoMRealistic = function(distribution = c("pg", "zinb"), de_type = "mean", p = 2, repID = NULL, n1 = 100, n2 = 100, idx = 1, lower = 300, upper = 1000, ...){
+  # function: run method of moments estimator
+  # input: distribution type; shift type (mean, variance, dispersion); moments tested; replicate ID; sample sizes; index; lower and upper cell count bounds
+  # output: test statistic and p-value; distribution; true effect size; group-wise covariance matrices; time elapsed in computation
   seed = idx + 62
   set.seed(seed)
 
@@ -688,7 +716,7 @@ simulateMoMRealistic = function(distribution = c("pg", "zinb"), de_type = "mean"
                             warning("Invalid de_type for zinb; returning NULL")
                             NULL
                           })
-    simData <- simu_zinb_vary_cellcts(seed = seed, n1 = n1, n2 = n2, lower = lower, upper = upper,  de_type = de_type, ...)
+    simData = simu_zinb_vary_cellcts(seed = seed, n1 = n1, n2 = n2, lower = lower, upper = upper,  de_type = de_type, ...)
   } else{
     print("Invalid distribution type")
     return(NULL)
@@ -699,10 +727,9 @@ simulateMoMRealistic = function(distribution = c("pg", "zinb"), de_type = "mean"
   y1 = as.vector(unlist(Y1)) 
   y2 = as.vector(unlist(Y2))
   
-  # Moment estimator
   start.time.mom = Sys.time()
-  Cov1 = mom_cov_diff_cell_cts(Y1, p)
-  Cov2 = mom_cov_diff_cell_cts(Y2, p)
+  Cov1 = mom_cov_diff_cell_cts(Y1, p) # group 1 MoM covariance estimator
+  Cov2 = mom_cov_diff_cell_cts(Y2, p) # group 2 MoM covariance estimatorv
   T1 = y1
   for (dim in 2:p){
     T1 = cbind(T1, y1^dim)
@@ -714,17 +741,20 @@ simulateMoMRealistic = function(distribution = c("pg", "zinb"), de_type = "mean"
   T1_bar = colMeans(T1)
   T2_bar = colMeans(T2)
   
-  chisq_mom = as.numeric(t((T1_bar - T2_bar)) %*% diag((1 / diag(Cov1 + Cov2))) %*% (T1_bar - T2_bar))
-  pv_mom = 1 - pchisq(chisq_mom, df = p) #we use p
+  chisq_mom = as.numeric(t((T1_bar - T2_bar)) %*% diag((1 / diag(Cov1 + Cov2))) %*% (T1_bar - T2_bar)) #chi sq test statistic
+  pv_mom = 1 - pchisq(chisq_mom, df = p) # we use p degrees of freedom
   end.time.mom = Sys.time()
   time.taken.mom = end.time.mom - start.time.mom
   return(list(distribution = distribution, effect_size = effect_size, de_type = de_type, pval = pv_mom, chisq_mom = chisq_mom, Cov1 = Cov1, Cov2 = Cov2, p = p, time_taken = time.taken.mom))
 }
 #  ---- PSEUDOBULK  ----
 simulatePseudobulkRealistic = function(distribution = c("pg", "zinb"), test_type = c("ttest","ks","ftest"), de_type = "mean", repID = NULL, n1 = 100, n2 = 100, idx = 1, lower = 300, upper = 1000, ...){
+  # function: run pseudobulk average estimator; we opt pseudobulk average due to nature of testing 1 gene at a time, so aggregation with library size is not suitable
+  # input: distribution type; shift type (mean, variance, dispersion); replicate ID; sample sizes; index; lower and upper cell count bounds
+  # output: test statistic and p-value; distribution; true effect size; pseudobulk data for each group
   seed = idx + 62
   set.seed(seed)
-  
+
   effect_size  = NULL
   extra_args <- list(...)
   for (argname in names(extra_args)) {
@@ -750,46 +780,40 @@ simulatePseudobulkRealistic = function(distribution = c("pg", "zinb"), test_type
                             warning("Invalid de_type for zinb; returning NULL")
                             NULL
                           })
-    simData <- simu_zinb_vary_cellcts(seed = seed, n1 = n1, n2 = n2, lower = lower, upper = upper,  de_type = de_type, ...)
+    simData = simu_zinb_vary_cellcts(seed = seed, n1 = n1, n2 = n2, lower = lower, upper = upper,  de_type = de_type, ...)
   } else{
     print("Invalid distribution type")
     return(NULL)
   }
   
-  Y1 = simData$Y1
+  Y1 = simData$Y1 
   Y2 = simData$Y2
-  
-  pbY1 = vapply(Y1, mean, numeric(1))
-  pbY2 = vapply(Y2, mean, numeric(1))
-  
+  pbY1 = vapply(Y1, mean, numeric(1)) # pb values
+  pbY2 = vapply(Y2, mean, numeric(1)) # pb values
   pb.df1 = data.frame(pbY1, rep(0,length(n1)))
   colnames(pb.df1) = c("pseudobulk", "group")
   pb.df2 = data.frame(pbY2, rep(1,length(n2)))
   colnames(pb.df2) = c("pseudobulk", "group")
   pb.total = rbind(pb.df1, pb.df2)
   
-  if (test_type == "ttest") {
+  if (test_type == "ttest") { # standard t-test
     pb.test = t.test(pb.df1$pseudobulk , pb.df2$pseudobulk)
-    
     pv_pb = pb.test$p.value
-    
     mean1_pb = pb.test$estimate[1]
     mean2_pb = pb.test$estimate[2]
-    
     test_stat_pb = pb.test$statistic
     sd_pb = pb.test$stderr
     return(list(distribution = distribution, effect_size = effect_size, de_type = de_type, mean1_pb = mean1_pb, mean2_pb = mean2_pb, Y1 = Y1, Y2 = Y2,
                 pval = pv_pb, test_stat = test_stat_pb, sd = sd_pb, test_type = test_type))
     
-  } else if(test_type == "ks"){
-    
+  } else if(test_type == "ks"){ # standard komolgorov-smirnov test 
     pb.test = ks.test(pb.df1$pseudobulk , pb.df2$pseudobulk)
     pv_pb = pb.test$p.value
     test_stat_pb = pb.test$statistic
     return(list(distribution = distribution, effect_size = effect_size, de_type = de_type, Y1 = Y1, Y2 = Y2,
                 pval = pv_pb, test_stat = test_stat_pb, test_type = test_type))
     
-  } else if(test_type == "ftest"){
+  } else if(test_type == "ftest"){ # f-test
     pb.test = var.test(pb.df1$pseudobulk, pb.df2$pseudobulk, ratio = 1, alternative = "two.sided")
     test_stat_pb = pb.test$statistic
     pv_pb = pb.test$p.value

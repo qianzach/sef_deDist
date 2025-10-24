@@ -6,8 +6,8 @@ This markdown document provides information on structure of downstream analysis 
 
 ### 1. Data Overview
 #### Single Cell Data
-The original raw data from the original Perez et al (2022) study can be accessed on the Chan-Zuckerberg Initiative (CZI)
-Cell Science's public domain in the `.h5ad` format (AnnData v0.10). It contains cell-specific metadata, including batch, sex, age, disease status, cell_type, ethnicity etc.
+The original raw data from the original Perez et al (2022) study can be accessed on the [Chan-Zuckerberg Initiative (CZI)
+Cell Science's public domain](https://cellxgene.cziscience.com/collections/436154da-bcf1-4130-9c8b-120ff9a888f2) in the `.h5ad` format (AnnData). It contains cell-specific metadata, including batch, sex, age, disease status, cell_type, ethnicity etc.
 
 In our study, we conduct cell-type specific normalization using `Seurat v5` in `R`. As such, we subset the original raw data by cell type (classical monocytes, CD4+ T-cells, CD8+ T-cells)
 and save the individual Seurat objects. Using these Seurat objects, we then undergo SCTransform-based integration using the aforementioned version `v5` of `Seurat`

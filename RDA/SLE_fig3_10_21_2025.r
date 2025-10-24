@@ -36,9 +36,9 @@ donors_to_use_per_gene = filter_genes_by_disease_donor_counts(donors_to_use_per_
 genes_of_interest = names(donors_to_use_per_gene)
 print(length(genes_of_interest))
 
-# specific_genes = c("S100A9", "ISG15","CYBA") # cM
-# specific_genes = c("HLA-A","NKG7", "LGALS1") # cd8
-# specific_genes = c("B2M", "IL32","KLF6") # cd4
+# specific_genes = c("S100A9", "ISG15","CYBA", S100A4) # cM; S100A4 S.7
+# specific_genes = c("HLA-A","NKG7", "LGALS1", MT2A, LTB) # cd8 MT2A, LTB S.7
+# specific_genes = c("B2M", "IL32","KLF6", TSC22D3) # cd4 TSC22D3 S.7
 
 genes_of_interest = names(donors_to_use_per_gene)
 don = "1101"

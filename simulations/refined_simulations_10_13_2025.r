@@ -12,60 +12,7 @@ library(parallel)
 library(doSNOW)
 library(foreach)
 library(reshape)
-source("simulations_main_10_13_2025.R") 
-
-########## CARRIER DENSITY ##########
-#  ---- POISSON GAMMA  ----
-args <- commandArgs(trailingOnly = TRUE)  
-DataType = "pg"
-n1 = 100; n2 = 100
-p = 3
-alpha2 = 5
-alpha1 = 5
-beta1 = 2
-beta2 = 2
-repID = 77  
-test = simulatePGRealistic(
-  repID = repID,
-  idx = 1,
-  alpha1 = alpha1,
-  alpha2 = alpha2,
-  beta1 = beta1,
-  beta2 = beta2,
-  n1 = n1,
-  n2 = n2,
-  de_type = "mean",
-  p = p
-)
-GraphName = paste0("./carrier-density-", DataType, "-n1-", n1, "-n2-", n2, "-p-", p,".pdf" )
-pdf(GraphName, width = 5, height = 5)
-print(test$carrier_plt)
-dev.off() 
-#  ---- ZERO-INFLATED NEGATIVE BINOMIAL  ----
-args <- commandArgs(trailingOnly = TRUE)
-DataType = "zinb"
-mu = 10; mu2 = 10
-theta = 5
-n1 = 100; n2 = 100
-sigma_sq = 5
-b_theta = 1
-pi = 0.5 ; pi2 = 0.5
-b_pi = 1
-de_type = "dispersion"
-repID = 77
-p = 2
-test = simulateZINB(
-  repID = repID, idx = 1,
-  mu = mu, mu2 = mu2, sigma_sq = sigma_sq,
-  theta = theta, b_theta = 1,
-  pi = pi, pi2 = pi2,
-  n1 = n1, n2 = n2,
-  de_type = de_type, p = p
-)
-GraphName = paste0("./carrier-density-", DataType, "-n1-", n1, "-n2-", n2, "-p-", p,".pdf" )
-pdf(GraphName, width = 5, height = 5)
-print(test$carrier_plt)
-dev.off() 
+source("./density_estimation/simulations/simulations_github/simulations_main_10_13_2025.r") 
 
 ########## QQ Plots ##########
 #  ---- POISSON GAMMA  ----
@@ -74,26 +21,22 @@ DataType = "PG"
 maxIter = 300 
 nCPUS = 10 
 n1 = 100; n2 = 100
-p = 3
-alpha2 = 5
-alpha1 = 5
+p = 2
+alpha2 = 20
+alpha1 = 20
 beta1 = 2
 beta2 = 2
 repID = 77  
 pvVec_margin = NULL 
-output <- pbmclapply(100:200, function(i) {
+output <- pbmclapply(1:maxIter, function(i) {
   tryCatch({
     simulatePGRealistic(
       repID = repID,
       idx = i,
-      alpha1 = alpha1,
-      alpha2 = alpha2,
-      beta1 = beta1,
-      beta2 = beta2,
-      n1 = n1,
-      n2 = n2,
-      de_type = "mean",
-      p = p, regularize = T
+      alpha1 = alpha1, alpha2 = alpha2,
+      beta1 = beta1, beta2 = beta2,
+      n1 = n1, n2 = n2,
+      de_type = "mean", p = p
     )
   }, error = function(e) {
     message(paste("Error in iteration", i, ":", e$message))
@@ -102,26 +45,7 @@ output <- pbmclapply(100:200, function(i) {
 }, mc.cores = 4) #parallel::detectCores() - 1
 pvVec_margin <- sapply(output, function(x) x$pval_1)
 gg_qqplot(unlist(pvVec_margin))
-
 realistic_qqplot = gg_qqplot(unlist(pvVec_margin)) + ggtitle("Poisson Gamma Model")
-print(realistic_qqplot)
-
-# print out the carrier density example
-test = simulatePGRealistic(
-  repID = repID,
-  idx = i,
-  alpha1 = alpha1,
-  alpha2 = alpha2,
-  beta1 = beta1,
-  beta2 = beta2,
-  n1 = n1,
-  n2 = n2,
-  de_type = "mean",
-  p = p)
-print(test$carrier_plt)
-
-print(test$comparison_plt)
-
 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL  ----
 args <- commandArgs(trailingOnly = TRUE)
@@ -153,24 +77,11 @@ output <- pbmclapply(1:maxIter, function(i) {
     message(sprintf("Error in iteration %d: %s", i, e$message))
     return(NULL)
   })
-}, mc.cores = parallel::detectCores() - 1)
+}, mc.cores = 4)
 pvVec_margin <- sapply(output, function(x) x$pval_1)
 gg_qqplot(unlist(pvVec_margin)) + ggtitle("ZINB Model")
 realistic_qqplot = gg_qqplot(unlist(pvVec_margin)) + ggtitle("ZINB Model")
 print(realistic_qqplot)
-
-# print out the carrier density example
-test = simulateZINB(
-  repID = repID, idx = i,
-  mu = mu, mu2 = mu2, sigma_sq = sigma_sq,
-  theta = theta, b_theta = 1,
-  pi = pi, pi2 = pi2,
-  n1 = n1, n2 = n2,
-  de_type = de_type, p = p
-)
-print(test$carrier_plt)
-
-print(test$comparison_plt)
 
 
 

@@ -600,7 +600,7 @@ gg_qqplot <- function(ps, ci = 0.95) {
     theme_bw(base_size = 22) +
     xlab(log10Pe) + ylab(log10Po) 
 } 
-plot_hli_carrier_with_hist = function(exprMat, gene, sObj_meta, donors_to_use_list, h = NULL){
+plot_carrier_with_hist = function(exprMat, gene, sObj_meta, donors_to_use_list, h = NULL){
   # function: plots carrier density with histogram overlayed
   # input: expression count matrix; gene of interest; cell-wise metadata; list of donor IDs; bandwidth
   # output: plot of carrier density with histogram overlaying
@@ -710,7 +710,7 @@ group_model_comparison_plot <- function(sef_object, gene) {
   
   return(p)
 }
-get_individual_sef_counts_hli_model = function(donor_id, gene, exprMat, sObj_meta, donor_list, p = 2, h = NULL, plot_flag = F){
+get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, donor_list, p = 2, h = NULL, plot_flag = F){
   # function: plot overlaying histogram of data for specific donor, overlaying individual-specific model and group-wise model to which the donor belongs to
   # input: donor ID; gene of interest; expression matrix; cell-wise metadata; list of donor IDs; moments to test; bandwidth; plot flag
   # output: plot

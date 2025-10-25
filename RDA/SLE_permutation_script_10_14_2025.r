@@ -67,20 +67,18 @@ tested_genes = names(donors_to_use_per_gene)
 
 # ---- n_perm loops ---- 
 for (i in seq_len(n_perm)) {
-  seed <- base_seed + i
+  seed = base_seed + i
   message(sprintf("Running permutation %d with seed %d", i, seed))
   
-  perm_result <- setNames(pbmclapply(tested_genes, function(name) {
+  perm_result = setNames(pbmclapply(tested_genes, function(name) {
     tryCatch({
-      exprMat1 <- exprMatReal[name, , drop = F]
+      exprMat1 = exprMatReal[name, , drop = F]
       stablePermutationTest(
         exprMat = exprMat1,
         covariate_df = covariate_df,
         sObj_meta = sObj_metadata,
         donor_list = donors_to_use_per_gene[[name]],
-        seed = seed,
-        p = 2,
-        plot_flag = F
+        seed = seed, p = 2, plot_flag = F
       )
     }, error = function(e) {
       message(paste("Error in processing:", name, "-", e$message))
@@ -88,22 +86,22 @@ for (i in seq_len(n_perm)) {
     })
   }, mc.cores = 5, ignore.interactive = TRUE), tested_genes)
   
-  all_perm_results[[i]] <- perm_result
-  gc()
+  all_perm_results[[i]] = perm_result
+  gc() #save memory
 }
 print("done")
 
 if(choice == 1){
   print("saving monocyte permutation test results...")
-  saveRDS(all_perm_results, file = "/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/permutation_results/dke_monocytes_perm_res_new.rds")
+  saveRDS(all_perm_results, file = "./cM_perm_res_new.rds")
   print("saved")
 } else if(choice == 2){
   print("saving NEW CD4+ permutation test results...")
-  saveRDS(all_perm_results, file = "/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/CD4_BEFORE_ONLY/TEST_dke_cd4_perm_res_new.rds")
+  saveRDS(all_perm_results, file = "./cd4_perm_res_new.rds")
   print("saved")
 } else if(choice == 3){
   print("saving NEW CD8+ permutation test results...")
-  saveRDS(all_perm_results, file = "/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/CD8_RESULTS_ASSUMINGFILTERBEFORE/TEST_dke_cd8_perm_res_new.rds")
+  saveRDS(all_perm_results, file = "./cd8_perm_res_new.rds")
   print("saved")
 }
 print(paste0("permutation test with ", n_perm, " total tests complete."))

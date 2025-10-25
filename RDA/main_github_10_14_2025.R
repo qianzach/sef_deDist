@@ -10,16 +10,18 @@ library(parallel)
 library(truncnorm)
 library(Seurat)
 library(pbmcapply)
-library(anndata)
 library(parallel)
 library(doSNOW)
 library(foreach) 
 library(doParallel)
-library(Hmisc)
 library(Ake)
+library(Hmisc)
+library(clusterProfiler)
+library(enrichplot)
+library(org.Hs.eg.db) 
 
 
-#  ---- BIN COUNT HELPER ----
+#  ---- BIN COUNT HELPER FUNCTION ----
 get_sc_bin_counts = function(Y, bin_edges, K){
   # function: tabulates expression values for each individual into bins with estimated grid points (length K)
   # input: list of arrays; grid points to use for bins
@@ -37,25 +39,18 @@ get_sc_bin_counts = function(Y, bin_edges, K){
 
 #  ---- PROCESSING HELPER FUNCTIONS  ----
 subset_exprMat_by_donors = function(exprMat, metadata, donor_vector) {
-  # function takes in a vector/array of expression counts, a cell-based metadata dataframe, and a list of IDs used to subset the expression array based on cell IDs
-  # function returns a subsetted array of expression counts that retain only the cells from the list of provided donors; assumes metadata and expression array have aligned indices
+  # function: subsets expression array based on cell IDs
+  # input: vector/array of expression counts; cell-based metadata dataframe; list of IDs
+  # output: subsetted array of expression counts that retain only the cells from the list of provided donors
+  # assumption: assumes metadata and expression array have aligned indices
   selected_cells <- rownames(metadata)[metadata$donor_id %in% donor_vector]
   exprMat_subset <- exprMat[, selected_cells, drop = FALSE]
   return(exprMat_subset)
 }
 
-subset_metadata_by_donors = function(sObj, donor_vector) {
-  # identify matching cell indices
-  cell_indices <- which(sObj$donor_id %in% donor_vector)
-  
-  # subset exprMat by cell indices
-  sObj_meta <- sObj@meta.data[cell_indices, , drop = F]
-  
-  return(sObj_meta)
-}
-
 filter_genes_by_disease_donor_counts = function(donors_to_use_per_gene, covariate_df, min_donors = 50) {
-  #filtration function with input of gene-specific named list of donors that satisfy filtration criteria, disease status-corresponding to sample IDs and a minimum # of satisfying samples per group
+  # function: filtration function to retain genes that have at least min_donors threshold
+  # input: gene-specific named list of donors that satisfy filtration criteria; disease status-corresponding to sample IDs; minimum # of satisfying samples per group
   # function retains elements (list of donors for a gene i) where there are at least min_donors in each group
   if (!all(c("donor_id", "disease_status") %in% colnames(covariate_df))) {
     stop("covariate_df must contain 'donor_id' and 'disease_status' cols")
@@ -77,7 +72,7 @@ filter_genes_by_disease_donor_counts = function(donors_to_use_per_gene, covariat
 }
 
 filtration_method = function(sObj, gene_vector, exprMat, n_cores = parallel::detectCores() - 1) {
-  #preprocessing function
+  # function: preprocessing function that identifies, for each gene listed, donors with at least 100 cells and 20% non-zero expression
   # inputs: seurat object, list of genes, count expression matrix (gene by cell), cores to use
   # output: returns a list of arrays, each element of the encompassing list corresponds to a gene and the donors that satisfy filtration criteria (at least 100 cells, no less than 20% of counts are non-zero)
   donors = unique(sObj$donor_id)
@@ -575,13 +570,13 @@ stablePermutationTest = function(exprMat, sObj_meta, donor_list, covariate_df, p
 }
 
 ####### FIGURE FUNCTIONS ####### 
-gg_qqplot <- function(ps, ci = 0.95) {
+gg_qqplot = function(ps, ci = 0.95) {
   # function: plotting qq plot with 95% confidence interval band using input of raw p-values
   # input: p-value array; confidence interval 
   # output: QQ plot
   n  = length(ps)
   df = data.frame(
-    observed = -log10(sort(ps)),
+    observed = -log10(sort(ps)), 
     expected = -log10(ppoints(n)),
     clower   = -log10(qbeta(p = (1 - ci) / 2, shape1 = 1:n, shape2 = n:1)),
     cupper   = -log10(qbeta(p = (1 + ci) / 2, shape1 = 1:n, shape2 = n:1))
@@ -590,7 +585,7 @@ gg_qqplot <- function(ps, ci = 0.95) {
   log10Po = expression(paste("Observed -log"[10], plain(P)))
   max_lim = max(df$expected, df$observed, df$clower, df$cupper, na.rm = TRUE) 
   
-  ggplot(df) +
+  plt = ggplot(df) +
     geom_ribbon(
       mapping = aes(x = expected, ymin = clower, ymax = cupper),
       alpha = 0.1, fill = "steelblue"
@@ -599,6 +594,7 @@ gg_qqplot <- function(ps, ci = 0.95) {
     geom_abline(intercept = 0, slope = 1, alpha = 0.5) + 
     theme_bw(base_size = 22) +
     xlab(log10Pe) + ylab(log10Po) 
+  return(plt)
 } 
 plot_carrier_with_hist = function(exprMat, gene, sObj_meta, donors_to_use_list, h = NULL){
   # function: plots carrier density with histogram overlayed
@@ -679,7 +675,7 @@ plot_carrier_with_hist = function(exprMat, gene, sObj_meta, donors_to_use_list, 
   
   return(p)
 }
-group_model_comparison_plot <- function(sef_object, gene) {
+group_model_comparison_plot = function(sef_object, gene) {
   # function: plot a group comparison
   # input: sef object; gene of interest
   # output: plot comparing two densities; controls is blue; SLE is red
@@ -688,7 +684,7 @@ group_model_comparison_plot <- function(sef_object, gene) {
   sef_2 = sef_object[[gene]]$sef_df2
   est_grid = sef_object[[gene]]$est_grid
   est_midpoints = sef_object[[gene]]$est_midpoints
-  df_plot <- data.frame(
+  df_plot = data.frame(
     x = rep(est_midpoints, 2),
     y = c(sef_1, sef_2),
     group = rep(c("Control", "SLE"), each = length(est_midpoints))
@@ -715,8 +711,8 @@ get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, d
   # input: donor ID; gene of interest; expression matrix; cell-wise metadata; list of donor IDs; moments to test; bandwidth; plot flag
   # output: plot
   
-  #run global model first, receive the carrier density as well
-  res <- stablerunSeuratCounts_Concise(exprMat = exprMat[gene, , drop = F], sObj_meta = sObj_meta, donor_list = donor_list[[gene]], p = p, h = h, plot_flag = plot_flag) #group-specific model execution
+  # run global model first, receive the carrier density as well
+  res = stablerunSeuratCounts_Concise(exprMat = exprMat[gene, , drop = F], sObj_meta = sObj_meta, donor_list = donor_list[[gene]], p = p, h = h, plot_flag = plot_flag) #group-specific model execution
   print(paste0("now running individual-specific model for donor ", donor_id))
   
   #get midpoints, carrier density estimate, gridpoints, status
@@ -741,7 +737,7 @@ get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, d
   
   ind_sObj_meta = sObj_meta[sObj_meta$donor_id == donor_id, , drop = FALSE]
   ind_cell_barcodes <- rownames(ind_sObj_meta) # to subset individual-specific vector of expression counts
-  y_ind <- as.vector(exprMat[gene, ind_cell_barcodes, drop = F])
+  y_ind = as.vector(exprMat[gene, ind_cell_barcodes, drop = F])
   y_ind = sqrt(y_ind + 1/2)
   n_indiv_cells = length(y_ind)
   
@@ -767,7 +763,7 @@ get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, d
   df1 = as.data.frame(cbind( ind_SSum, ind_carrier_scale, X_ind))
   colnames(df1)[1] = "sum_cts"
   colnames(df1)[2] = "carrier_scale"
-  df1 <- df1[df1$carrier_scale > 0, , drop = FALSE]
+  df1 = df1[df1$carrier_scale > 0, , drop = FALSE]
   formula = as.formula( paste0('sum_cts~offset(log(carrier_scale))+', paste(varb, collapse = '+')))
   sef_gp_ind = tryCatch(glm( formula, family = poisson(link="log"), data = df1))  
   beta_est_ind = as.vector(sef_gp_ind$coefficients)
@@ -784,9 +780,8 @@ get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, d
     y = grp_model, # group-specific estimates
     group = "Group Model"
   )
-  p_df_combined = rbind(p_df, p_df2)
-  
-  df_hist <- data.frame(y_ind = y_ind)
+  p_df_combined = rbind(p_df, p_df2) #dfs used for ggplot()
+  df_hist = data.frame(y_ind = y_ind)
   
   plt = ggplot() +
     geom_histogram(data = df_hist, aes(x = y_ind, y = ..density..), # histogram density mode
@@ -806,7 +801,7 @@ get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, d
   print("done")
   
 }
-run_go_enrichment_plot <- function(gene_symbols, orgDb = org.Hs.eg.db, ontology = "BP", 
+run_go_enrichment_plot = function(gene_symbols, orgDb = org.Hs.eg.db, ontology = "BP", 
                                    cutoff = 0.6, universe = NULL, pvalueCutoff = 0.05,
                                    minGSSize = 10, maxGSSize = 500) {
   # function: run enrichment analysis with clusterProfiler; converts from HGNC to ENTREZID and back 
@@ -828,16 +823,11 @@ run_go_enrichment_plot <- function(gene_symbols, orgDb = org.Hs.eg.db, ontology 
   }
   
   # GO enrichment hypergeometric test
-  ego <- enrichGO(gene = gene_df$ENTREZID,
-                  OrgDb = orgDb,
-                  universe = entrez_universe,
-                  pvalueCutoff = pvalueCutoff,
-                  minGSSize = minGSSize,
-                  maxGSSize = maxGSSize,
-                  keyType = "ENTREZID",
-                  ont = ontology,
-                  pAdjustMethod = "BH",
-                  readable = TRUE)
+  ego = enrichGO(gene = gene_df$ENTREZID, OrgDb = orgDb,
+                  universe = entrez_universe, pvalueCutoff = pvalueCutoff,
+                  minGSSize = minGSSize, maxGSSize = maxGSSize,
+                  keyType = "ENTREZID", ont = ontology,
+                  pAdjustMethod = "BH", readable = TRUE)
   # run simplify() to remove redundant enriched terms to identify general BPs occurring
   ego = clusterProfiler::simplify(ego, cutoff = cutoff, by = "p.adjust")
   return(ego)

@@ -16,10 +16,9 @@ cell_type = "cd8"
 covariate_df = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/DATA/covariate_data.csv")
 sObj_metadata = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_metadata.RDS") 
 exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_exprMat.RDS") 
-donors_to_use_per_gene = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_donors_for_all_genes_list_no_ribo.RDS") 
-min_donors = 50
-donors_to_use_per_gene = filter_genes_by_disease_donor_counts(donors_to_use_per_gene, covariate_df, min_donors = min_donors)
+donors_to_use_per_gene = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_donors_for_genes_processed.RDS") 
 genes_of_interest = names(donors_to_use_per_gene)
+print(length(genes_of_interest))
 
 ####### sef regression ####### 
 p = 2
@@ -45,17 +44,14 @@ dim(pval_df)
 head(pval_df)
 sig = subset(pval_df, bonferroni_pval < 0.05)
 
-# pathway analysis
-er1 = run_go_enrichment_plot(gene_symbols = row.names(sig), maxGSSize = 500, cutoff = 0.6)
-interesting_pathways = c("regulation of lymphocyte apoptotic process","regulation of T cell activation", "leukocyte mediated cytotoxicity",
-                         "peptide antigen assembly with MHC protein complex", "positive regulation of leukocyte cell-cell adhesion")
+# pathway analysis reconstruction (figure 5)
 res = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/results/enrichment_res/all_cd8_interesting_pathways.csv", row.names = 1)
-res$Count <- sapply(strsplit(res$geneID, "/"), length)
-ego_reconstructed <- new("enrichResult")
-ego_reconstructed@result <- res
-ego_reconstructed@organism <- "Homo sapiens"
-ego_reconstructed@keytype <- "ENTREZID"
-ego_reconstructed@ontology <- "BP"
-ego_reconstructed@readable <- TRUE
+res$Count = sapply(strsplit(res$geneID, "/"), length)
+ego_reconstructed = new("enrichResult")
+ego_reconstructed@result = res
+ego_reconstructed@organism = "Homo sapiens"
+ego_reconstructed@keytype = "ENTREZID"
+ego_reconstructed@ontology = "BP"
+ego_reconstructed@readable = TRUE
 barplot(height = ego_reconstructed) + ggtitle("CD8+") + guides(size = "none")
 

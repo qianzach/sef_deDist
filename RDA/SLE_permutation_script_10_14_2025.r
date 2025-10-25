@@ -33,31 +33,24 @@ if (!choice %in% c(1, 2, 3)) {
 
 if (choice == 1) {
   cat("You chose Monocytes\n")
-  sObj = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/classical_monocyte_sObj_sct.RDS") #must run
-  donors_to_use_per_gene = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/monocytes_norm_results/monocytes_donors_for_all_genes_list_no_ribo.RDS")
+  sObj_metadata = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cM_metadata.RDS")
+  exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cM_exprMatReal.RDS")
+  donors_to_use_per_gene = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cM_donors_for_genes_processed.RDS")
 } else if (choice == 2) {
   cat("You chose CD4\n")
-  sObj = readRDS("./density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/TEST_cd4_sObj_sct.RDS") #must run
-  # sObj_metadata = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/TEST_github_cd4_seurat_metadata.RDS")
-  # exprMatReal = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/TEST_github_cd4_seurat_exprMat.RDS")
-  donors_to_use_per_gene = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/TEST_cd4_donors_for_all_genes_list_no_ribo.RDS")
+  sObj_metadata = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd4_metadata.RDS")
+  exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd4_exprMat.RDS")
+  donors_to_use_per_gene = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd4_donors_for_genes_processed.RDS")
 } else if (choice == 3) {
   cat("You chose CD8\n")
-  sObj = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/cd8_sObj_sct.RDS") #must run
-  # sObj_metadata = readRDS("./density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/TEST_github_cd8_seurat_metadata.RDS")
-  # exprMatReal = readRDS("./density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/TEST_github_cd8_seurat_exprMat.RDS")
-  donors_to_use_per_gene = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/cell_type_specific_seurat_objects/TEST/CD8_RESULTS_ASSUMINGFILTERBEFORE/TEST_cd8_donors_for_all_genes_list_no_ribo.RDS")
+  sObj_metadata = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_metadata.RDS")
+  exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_exprMat.RDS")
+  donors_to_use_per_gene = readRDS("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cd8_donors_for_genes_processed.RDS")
 } else {
   cat("Invalid choice\n")
 }
-DefaultAssay(sObj) = "SCT" #must run
-sObj@assays$SCT$scale.data = NULL
-sObj = PrepSCTFindMarkers(sObj)
-sObj_metadata = sObj@meta.data
-exprMatReal = sObj@assays$SCT$counts
-donors_to_use_per_gene = filter_genes_by_disease_donor_counts(donors_to_use_per_gene, covariate_df, min_donors = 50)
+
 genes_of_interest = names(donors_to_use_per_gene)
-# rm(sObj)
 print(length(genes_of_interest))
 print("loaded up data.")
 

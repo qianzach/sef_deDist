@@ -33,6 +33,11 @@ exprMatReal = sObj@assays$SCT$counts
 ####### preprocessing ####### 
 donors_to_use_per_gene = filtration_method(sObj = sObj, gene_vector = rownames(exprMatReal),
                                                    exprMat = exprMatReal) # make function name anonymous
-donors_to_use_per_gene <- donors_to_use_per_gene[!grepl("^RPL|^RPS", names(donors_to_use_per_gene)) & names(donors_to_use_per_gene) != "MALAT1"]
-saveRDS(donors_to_use_per_gene, paste0(cell_type,"_donors_for_all_genes_list_no_ribo.RDS"))
+donors_to_use_per_gene = donors_to_use_per_gene[!grepl("^RPL|^RPS", names(donors_to_use_per_gene)) & names(donors_to_use_per_gene) != "MALAT1"]
+# saveRDS(donors_to_use_per_gene, paste0(cell_type,"_donors_for_all_genes_list_no_ribo.RDS"))
+
+min_donors = 50
+donors_to_use_per_gene = filter_genes_by_disease_donor_counts(donors_to_use_per_gene, covariate_df, min_donors = min_donors)
+saveRDS(donors_to_use_per_gene, paste0(cell_type,"_donors_for_genes_processed.RDS"))
+
 

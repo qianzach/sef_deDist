@@ -18,9 +18,7 @@ get_volcano_plot = function(df, fc_thresh = 0.5, pval_thresh = 0.05, p_title = "
       y = "-log10(adjusted p-value)",
       title = p_title
     ) +
-    theme(
-      plot.title = element_text(hjust = 0.5)
-    )
+    theme(plot.title = element_text(hjust = 0.5))
 }
 # load results
 sef_cM = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/sef_cM_fixed_pvals.csv", row.names = 1)

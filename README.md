@@ -2,7 +2,7 @@
 
 ## Data Dictionary for *Differential Density Analysis in Single-Cell Genomics Using Specially Designed Exponential Families*
 
-In this section, we provide information on the structure of downstream analysis and reproducibility of figures for the manuscript.
+We provide information on the structure of downstream analysis and reproducibility of figures for the manuscript here.
 
 --- 
 

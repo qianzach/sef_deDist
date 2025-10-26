@@ -36,7 +36,7 @@ specific_genes = c("HLA-A","NKG7", "LGALS1", "MT2A", "LTB") # cd8; S.7: MT2A, LT
 don = "1101"
 genes_of_interest = specific_genes
 p = 2
-res_list <- setNames(pbmclapply(genes_of_interest, function(name) { #run sef regression for the genes of interest
+res_list = setNames(pbmclapply(genes_of_interest, function(name) { #run sef regression for the genes of interest
   tryCatch({
     exprMat1 = exprMatReal[name, , drop = F]
     stablerunSeuratCounts_Concise(exprMat = exprMat1, donor_list = donors_to_use_per_gene[[name]], sObj_meta = sObj_metadata, p = p, plot_flag = F) 

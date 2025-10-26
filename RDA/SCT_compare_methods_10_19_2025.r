@@ -8,12 +8,12 @@ library(pbmcapply)
 source("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/main_github_10_14_2025.R") 
 covariate_df = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/DATA/covariate_data.csv")
 
-args <- commandArgs(trailingOnly = TRUE)
+args = commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
   stop("Usage: Rscript fair_pb.R <cell_type>\n  <cell_type> must be one of: cM, cd8, cd4", call. = FALSE)
 }
-cell_type <- tolower(args[[1]])
-valid_ct <- c("cM", "cd8", "cd4") 
+cell_type = tolower(args[[1]])
+valid_ct = c("cM", "cd8", "cd4") 
 if (cell_type == "cm"){ # re-correct back to cM format
   cell_type = "cM"
 }
@@ -72,11 +72,7 @@ fair_pseudo_wilcoxon = function(pb_sObj, donors_i, gene_i){
   
   x = design_matrix$expression[design_matrix$disease == "normal"]
   y = design_matrix$expression[design_matrix$disease == "systemic lupus erythematosus"]
-  wilcox_res <- wilcox.test(
-    x = x,
-    y = y,
-    alternative = "two.sided"
-  )
+  wilcox_res = wilcox.test(x = x, y = y,alternative = "two.sided")
   logFC = mean(log2(y + 1)) - mean(log2(x + 1)) 
   return(
     data.frame(
@@ -91,11 +87,11 @@ fair_pseudo_wilcoxon = function(pb_sObj, donors_i, gene_i){
   )
 }
 
-results_list <- pbmclapply(
+results_list = pbmclapply( # run in parallel
   genes_of_interest,
   mc.cores = 3,
   function(g) {
-    donors_i <- donors_to_use_per_gene[[g]]
+    donors_i = donors_to_use_per_gene[[g]]
     try(
       fair_pseudo_wilcoxon(pb_sObj, donors_i, g),
       silent = TRUE

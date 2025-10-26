@@ -16,10 +16,9 @@ source("./density_estimation/simulations/simulations_github/simulations_main_10_
 
 ########## QQ Plots ##########
 #  ---- POISSON GAMMA  ----
-args <- commandArgs(trailingOnly = TRUE)  
-DataType = "PG"
+nCPUS = 10
+DataType = "pg"
 maxIter = 300 
-nCPUS = 10 
 n1 = 100; n2 = 100
 p = 2
 alpha2 = 20
@@ -48,10 +47,9 @@ gg_qqplot(unlist(pvVec_margin))
 realistic_qqplot = gg_qqplot(unlist(pvVec_margin)) + ggtitle("Poisson Gamma Model")
 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL  ----
-args <- commandArgs(trailingOnly = TRUE)
+nCPUS = 10
 DataType = "zinb"
 maxIter = 300 
-nCPUS = 10 
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 100
@@ -87,11 +85,10 @@ print(realistic_qqplot)
 
 ########## POWER ANALYSIS ##########
 #  ---- POISSON GAMMA MEAN ----
-args <- commandArgs(trailingOnly = TRUE)  
+nCPUS = 10
 DataType = "pg"
 de_type = "mean"
 maxIter = 300 
-nCPUS = 8 
 tau1 = 2; tau2 = 2
 n1 = 100; n2 = 100
 p = 2
@@ -194,11 +191,10 @@ print(obj_pw)
 dev.off() 
 
 #  ---- POISSON GAMMA VARIANCE ----
-args <- commandArgs(trailingOnly = TRUE)  
+nCPUS = 10
 DataType = "pg"
 de_type = "variance"
-maxIter = 210 
-nCPUS = 8 
+maxIter = 300 
 tau1 = 2; tau2 = 2
 n1 = 100; n2 = 100
 p = 2
@@ -268,7 +264,7 @@ q = 0.05
 Allmethods = c("margin", "mom", "ttest", "ks")
 df_pw = data.frame(effect_size = (target_variance - V1), margin = colMeans( pvMat_margin < q ),
                    mom = colMeans(pvMat_mom < q),
-                   ftest = colMeans(pvMat_ttest < q),
+                   ttest = colMeans(pvMat_ttest < q),
                    ks = colMeans(pvMat_ks < q))
 df_pw = df_pw[1:10,]
 df_pw2 = reshape::melt( df_pw, id.vars = "effect_size")
@@ -298,7 +294,7 @@ pdf(GraphName, width = 5, height = 5)
 print(obj_pw)
 dev.off() 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL MEAN  ----
-args <- commandArgs(trailingOnly = TRUE)
+nCPUS = 10
 mu = 10
 mu2s = seq(10, 13, 0.25)
 theta = 5
@@ -314,7 +310,6 @@ K = 100
 p = 2
 DataType = "zinb"
 maxIter = 300 
-nCPUS = 8
 pvMat_margin = NULL
 pvMat_mom = NULL
 pvMat_ttest = NULL
@@ -408,7 +403,7 @@ pdf(GraphName, width = 5, height = 5)
 print(obj_pw)
 dev.off() 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL VARIANCE  ----
-args <- commandArgs(trailingOnly = TRUE)
+nCPUS = 10
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 100
@@ -423,7 +418,6 @@ K = 100
 p = 2
 DataType = "zinb"
 maxIter = 300 
-nCPUS = 8
 pvMat_margin = NULL
 pvMat_mom = NULL
 pvMat_ttest = NULL

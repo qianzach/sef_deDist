@@ -18,9 +18,9 @@ cM_validated_genes = intersect(rownames(perez)[perez$cM == 1], names(donors_cM))
 sef_cM = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/sef_cM_fixed_pvals.csv", row.names = 1)
 sef_cd8 = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/sef_cd8_fixed_pvals.csv", row.names = 1)
 sef_cd4 = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/sef_cd4_fixed_pvals.csv", row.names = 1)
-SCT_cM = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/SCT_fair_comparison_pb_cM_10_15_2025.csv", row.names = 1)
-SCT_cd8 = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/SCT_fair_comparison_pb_cd8_10_15_2025.csv", row.names = 1)
-SCT_cd4 = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/SCT_fair_comparison_pb_cd4_10_15_2025.csv", row.names = 1)
+SCT_cM = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/pb_cM_10_15_2025.csv", row.names = 1)
+SCT_cd8 = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/pb_cd8_10_15_2025.csv", row.names = 1)
+SCT_cd4 = read.csv("/Users/zaqian/Desktop/density_estimation/sef_lupus_results/exploration/to_github_repo/results/pb_cd4_10_15_2025.csv", row.names = 1)
 
 # cd8
 sum(row.names(sef_cd8) %in% cd8_validated_genes)/length(cd8_validated_genes)

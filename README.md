@@ -11,9 +11,6 @@ We provide information on the structure of downstream analysis and reproducibili
 
 The data used in our analysis for each cell type can be accessed via Zenodo using the following [link](https://zenodo.org/records/17402494?preview=1&token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjM0MzNkNDE1LWY4ZTctNDVhYi1hODk5LWJmNzhjNzg4MDUxNyIsImRhdGEiOnt9LCJyYW5kb20iOiI1OTVhOGVjZTBkYmZkZjBjMDA2ZTY4ZTBmNmVjN2Q3NiJ9.ONISAR5Zgx5GZ0odRZKmfSKmKTzBUTRyZ250S-hCc18EzXopSVeq12rdOqvJt_VgHZaHObG8x909Sya_aV9CVQ).
 
-As mentioned in the manuscript, the data used is from the original Perez et al (2022) study *Single-cell RNA-seq reveals cell type-specific molecular and genetic associations to lupus*, and their original data can be accessed on the [Chan-Zuckerberg Initiative (CZI)
-Cell Science's database](https://cellxgene.cziscience.com/collections/436154da-bcf1-4130-9c8b-120ff9a888f2) in the `.h5ad` format (AnnData).
-
 ---
 
 ### 2. File Overview
@@ -49,7 +46,7 @@ This includes two pathways: cytokine production in monocytes and regulation of p
 
 | File Name | Format     | Description |
 |---------------|----------|------------|
-| `SLE_SEF_regression_walkthrough_10_24_2025`      | `.R`  | Runs cell-type specific SEF regression modeling and testing; code to reproduce Figure 5 |
+| `SLE_SEF_regression_walkthrough_10_24_2025`      | `.R`  | Runs cell-type specific SEF regression modeling and testing; code to reproduce Figure 5 for a given cell-type (CD8+ T-cells as example) |
 | `SLE_compare_methods_10_19_2025`  | `.R`   | Procedural pipeline for pseudobulk methods; run on command line but also can be run on any `R`-compatible environments |
 | `SLE_table1_fig2_10_21_2025`  | `.R`   | Workflow to reproduce Table 1 numbers and Figure 2 |
 | `SLE_validation_comparison_perez_10_21_2025`  | `.R`   | Workflow to reproduce proportions in Table 2 |
@@ -65,7 +62,7 @@ In this section, we overview the formatted data objects used in our simulations 
 
 | Object Name | Format     | Description |
 |---------------|----------|------------|
-| `covariate_data`           | `.csv`     | Covariate data with donor ID and disease status specification|
+| `covariate_data`           | `.csv`     | Covariate data with donor ID and disease status specification |
 | `CELLTYPE_seurat_exprMat` | `.RDS`  | Library-size corrected counts matrix (genes x cell) |
 | `CELLTYPE_seurat_metadata`| `.RDS`   | Contains metadata from original data (cell-level rows) |
 | `CELLTYPE_donors_for_genes_processed`      | `.RDS`  | List of arrays, each element contains an array of donors that have at least 100 cells and 20% non-zero values for all genes tested per cell type |

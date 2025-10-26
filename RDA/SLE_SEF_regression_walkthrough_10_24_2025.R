@@ -22,7 +22,7 @@ print(length(genes_of_interest))
 
 ####### sef regression ####### 
 p = 2
-res_list <- setNames(pbmclapply(genes_of_interest, function(name) { # run in parallel
+res_list = setNames(pbmclapply(genes_of_interest, function(name) { # run in parallel
   tryCatch({
     exprMat1 = exprMatReal[name, , drop = F]
     stablerunSeuratCounts_Concise(exprMat = exprMat1, donor_list = donors_to_use_per_gene[[name]], sObj_meta = sObj_metadata, p = p, plot_flag = F) 
@@ -34,14 +34,11 @@ res_list <- setNames(pbmclapply(genes_of_interest, function(name) { # run in par
 
 # extract p-values, adjust for multiple comparisons
 res_list = Filter(Negate(is.null), res_list)
-pvals <- unlist(sapply(res_list, function(x) x$pval_1))
-pval_df <- data.frame(p_value = pvals, row.names = names(pvals))
+pvals = unlist(sapply(res_list, function(x) x$pval_1))
+pval_df = data.frame(p_value = pvals, row.names = names(pvals))
 pval_df$bonferroni_pval = p.adjust(pval_df$p_value, method = "bonferroni")
 dim(subset(pval_df, bonferroni_pval < 0.05)) 
-pval_df <- pval_df %>%
-  arrange(bonferroni_pval)
-dim(pval_df)
-head(pval_df)
+pval_df = pval_df %>% arrange(bonferroni_pval)
 sig = subset(pval_df, bonferroni_pval < 0.05)
 
 # pathway analysis reconstruction (figure 5)

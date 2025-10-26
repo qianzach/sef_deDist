@@ -31,7 +31,7 @@ get_sc_bin_counts = function(Y, bin_edges, K){
   
   for (i in seq_along(Y)) {
     # cut() classifies Y[[i]] elements into bins
-    bin_indices <- cut(Y[[i]], breaks = bin_edges, include.lowest = TRUE, labels = FALSE)
+    bin_indices = cut(Y[[i]], breaks = bin_edges, include.lowest = TRUE, labels = FALSE)
     counts_matrix[i, ] = tabulate(bin_indices, nbins = K) # count occurrences in each bin
   }
   return(counts_matrix)
@@ -43,8 +43,8 @@ subset_exprMat_by_donors = function(exprMat, metadata, donor_vector) {
   # input: vector/array of expression counts; cell-based metadata dataframe; list of IDs
   # output: subsetted array of expression counts that retain only the cells from the list of provided donors
   # assumption: assumes metadata and expression array have aligned indices
-  selected_cells <- rownames(metadata)[metadata$donor_id %in% donor_vector]
-  exprMat_subset <- exprMat[, selected_cells, drop = FALSE]
+  selected_cells = rownames(metadata)[metadata$donor_id %in% donor_vector]
+  exprMat_subset = exprMat[, selected_cells, drop = FALSE]
   return(exprMat_subset)
 }
 
@@ -62,9 +62,10 @@ filter_genes_by_disease_donor_counts = function(donors_to_use_per_gene, covariat
   }
   
   filtered_donors <- Filter(function(donors) {
-    matched_df <- covariate_df[covariate_df$donor_id %in% donors, ] #keep donors based on the donor IDs in the ith element of donors_to_use_per_gene
-    matched_df$disease_status <- factor(matched_df$disease_status, levels = disease_levels) # convert to factor
-    donor_counts <- table(matched_df$disease_status) #make table of # SLE, # controls
+    # quick function to extract counts of SLE and control counts for a gene
+    matched_df = covariate_df[covariate_df$donor_id %in% donors, ] #keep donors based on the donor IDs in the ith element of donors_to_use_per_gene
+    matched_df$disease_status = factor(matched_df$disease_status, levels = disease_levels) # convert to factor
+    donor_counts = table(matched_df$disease_status) #make table of # SLE, # controls
     all(donor_counts >= min_donors)
   }, donors_to_use_per_gene)
   
@@ -234,7 +235,7 @@ sef_regression = function(exprMat, sObj_meta, donor_list, p = 2, plot_flag = F, 
   sef_gp1 = tryCatch(glm( formula, family = poisson(link="log"), data = df1))  
   sef_gp2 = tryCatch(glm( formula, family = poisson(link="log"), data = df2))  
   # if experience convergence issue, we simply test on p-1 moments
-  convergence_issue <- (!is.null(sef_gp1) && !sef_gp1$converged) || (!is.null(sef_gp2) && !sef_gp2$converged)
+  convergence_issue = (!is.null(sef_gp1) && !sef_gp1$converged) || (!is.null(sef_gp2) && !sef_gp2$converged)
   if (convergence_issue) {
     message("Convergence issue detected in at least one model. Retrying with reduced columns...")
     p = p - 1 # test p-1 moments
@@ -296,20 +297,20 @@ sef_inference = function(X = NULL, K = NULL, sef_df1 = NULL, sef_df2 = NULL, cel
   # input: sef_regression object that contains design matrix, bin count, fitted values, regression coefficients for the p moments tested, etc.
   # output: test statistic, p-value, covariance, matrix, difference in beta estimates
   if (!is.null(sef_regression_obj)) {   # extract components from sef_regression object
-    X <- sef_regression_obj$X
-    K <- sef_regression_obj$K
-    n_total_cells <- sef_regression_obj$n_total_cells
-    sef_df1 <- sef_regression_obj$sef_df1
-    sef_df2 <- sef_regression_obj$sef_df2
-    cellSum1 <- sef_regression_obj$cellSum1
-    cellSum2 <- sef_regression_obj$cellSum2
-    est_midpoints <- sef_regression_obj$est_midpoints
-    binwidth <- sef_regression_obj$binwidth
-    beta_est1 <- sef_regression_obj$beta_est1
-    beta_est2 <- sef_regression_obj$beta_est2
-    Smat1 <- sef_regression_obj$Smat1
-    Smat2 <- sef_regression_obj$Smat2
-    p <- sef_regression_obj$p
+    X = sef_regression_obj$X
+    K = sef_regression_obj$K
+    n_total_cells = sef_regression_obj$n_total_cells
+    sef_df1 = sef_regression_obj$sef_df1
+    sef_df2 = sef_regression_obj$sef_df2
+    cellSum1 = sef_regression_obj$cellSum1
+    cellSum2 = sef_regression_obj$cellSum2
+    est_midpoints = sef_regression_obj$est_midpoints
+    binwidth = sef_regression_obj$binwidth
+    beta_est1 = sef_regression_obj$beta_est1
+    beta_est2 = sef_regression_obj$beta_est2
+    Smat1 = sef_regression_obj$Smat1
+    Smat2 = sef_regression_obj$Smat2
+    p = sef_regression_obj$p
   }
   
   if (any(sapply(list(X, K, sef_df1, sef_df2, cellSum1, cellSum2, n_total_cells,
@@ -318,43 +319,43 @@ sef_inference = function(X = NULL, K = NULL, sef_df1 = NULL, sef_df2 = NULL, cel
     stop("Some required parameters are missing. Either provide them individually or via sef_regression_obj.")
   }
   beta_diff = beta_est2 - beta_est1
-  S1sum <- colSums(Smat1)
-  S2sum <- colSums(Smat2)
+  S1sum = colSums(Smat1)
+  S2sum = colSums(Smat2)
   
   
   # marginal distribution test statistic computation
-  G_1 <- t(X) %*% (sef_df1 * X) * cellSum1 / sum(sef_df1) # G from Thm 4.1
-  G_2 <- t(X) %*% (sef_df2 * X) * cellSum2 / sum(sef_df2)
+  G_1 = t(X) %*% (sef_df1 * X) * cellSum1 / sum(sef_df1) # G from Thm 4.1
+  G_2 = t(X) %*% (sef_df2 * X) * cellSum2 / sum(sef_df2)
   
-  pairwise_diff <- outer(est_midpoints, est_midpoints, "-")
-  n_total_cells <- cellSum1 + cellSum2
-  M <- dnorm(pairwise_diff, sd = binwidth) / n_total_cells
+  pairwise_diff = outer(est_midpoints, est_midpoints, "-")
+  n_total_cells = cellSum1 + cellSum2
+  M = dnorm(pairwise_diff, sd = binwidth) / n_total_cells
   
-  Z11 <- t(X) %*% (diag(K) - cellSum1 * as.vector(exp(X %*% beta_est1)) * M / sum(sef_df1)) # Z from Thm 4.1
-  Z12 <- t(X) %*% (-cellSum1 * as.vector(exp(X %*% beta_est1)) * M / sum(sef_df1))
-  Z21 <- t(X) %*% (-cellSum2 * as.vector(exp(X %*% beta_est2)) * M / sum(sef_df2))
-  Z22 <- t(X) %*% (diag(K) - cellSum2 * as.vector(exp(X %*% beta_est2)) * M / sum(sef_df2))
+  Z11 = t(X) %*% (diag(K) - cellSum1 * as.vector(exp(X %*% beta_est1)) * M / sum(sef_df1)) # Z from Thm 4.1
+  Z12 = t(X) %*% (-cellSum1 * as.vector(exp(X %*% beta_est1)) * M / sum(sef_df1))
+  Z21 = t(X) %*% (-cellSum2 * as.vector(exp(X %*% beta_est2)) * M / sum(sef_df2))
+  Z22 = t(X) %*% (diag(K) - cellSum2 * as.vector(exp(X %*% beta_est2)) * M / sum(sef_df2))
   
-  L1 <- solve(G_1, Z11) - solve(G_2, Z21)
-  L2 <- solve(G_1, Z12) - solve(G_2, Z22)
+  L1 = solve(G_1, Z11) - solve(G_2, Z21)
+  L2 = solve(G_1, Z12) - solve(G_2, Z22)
   
-  m_vec1 <- rowSums(Smat1)
-  m_vec2 <- rowSums(Smat2)
-  Smat1_ave <- Smat1 / m_vec1
-  Smat2_ave <- Smat2 / m_vec2
+  m_vec1 = rowSums(Smat1)
+  m_vec2 = rowSums(Smat2)
+  Smat1_ave = Smat1 / m_vec1
+  Smat2_ave = Smat2 / m_vec2
   
-  Smat1_centered <- t(Smat1_ave) - colSums(Smat1) / sum(m_vec1)
-  Smat2_centered <- t(Smat2_ave) - colSums(Smat2) / sum(m_vec2)
+  Smat1_centered = t(Smat1_ave) - colSums(Smat1) / sum(m_vec1)
+  Smat2_centered = t(Smat2_ave) - colSums(Smat2) / sum(m_vec2)
   
-  tmp1 <- diag(S1sum) - 2 * t(Smat1) %*% Smat1_ave + t(Smat1_ave) %*% Smat1_ave + 
+  tmp1 = diag(S1sum) - 2 * t(Smat1) %*% Smat1_ave + t(Smat1_ave) %*% Smat1_ave + 
     Smat1_centered %*% (t(Smat1_centered) * m_vec1^2)
-  tmp2 <- diag(S2sum) - 2 * t(Smat2) %*% Smat2_ave + t(Smat2_ave) %*% Smat2_ave + 
+  tmp2 = diag(S2sum) - 2 * t(Smat2) %*% Smat2_ave + t(Smat2_ave) %*% Smat2_ave + 
     Smat2_centered %*% (t(Smat2_centered) * m_vec2^2)
   
-  Cov_bar <- L1 %*% tmp1 %*% t(L1) + L2 %*% tmp2 %*% t(L2)
+  Cov_bar = L1 %*% tmp1 %*% t(L1) + L2 %*% tmp2 %*% t(L2)
   
-  chi_stat1 <- as.numeric(beta_diff[-1] %*% solve(Cov_bar[-1, -1], beta_diff[-1]))
-  pval_1 <- 1 - pchisq(chi_stat1, df = p)
+  chi_stat1 = as.numeric(beta_diff[-1] %*% solve(Cov_bar[-1, -1], beta_diff[-1]))
+  pval_1 = 1 - pchisq(chi_stat1, df = p)
   print(paste0("marginal distribution pval: ", pval_1))
   
   return(list(beta_diff = beta_diff, pval_1 = pval_1, chi_stat1 = chi_stat1, Cov_bar = Cov_bar))
@@ -366,8 +367,8 @@ stablerunSeuratCounts_Concise = function(exprMat, sObj_meta, donor_list, p = 2, 
   # output: regression statistics, etc.
   regression_object = sef_regression(exprMat = exprMat, sObj_meta = sObj_meta, donor_list = donor_list, p = p, plot_flag = plot_flag, h = h) # , transformation = transformation)
   test_object = sef_inference(sef_regression_obj = regression_object)
-  to_remove <- c("X", "Smat1", "Smat2", "Smat", "sef_gp1", "sef_gp2") # large and unnecessary at the end, so we omit 
-  regression_statistics <- regression_object[!(names(regression_object) %in% to_remove)]
+  to_remove = c("X", "Smat1", "Smat2", "Smat", "sef_gp1", "sef_gp2") # large and unnecessary at the end, so we omit 
+  regression_statistics = regression_object[!(names(regression_object) %in% to_remove)]
   return(c(regression_statistics, test_object))
 }
 
@@ -449,8 +450,8 @@ sef_permuted_regression = function(exprMat, sObj_meta, donor_list, covariate_df,
   print(paste0("permuting samples with SLE and healthy controls with seed ", seed, "..."))
   set.seed(seed) # for reproducibility when permuting disease status across samples
   covariate_df = subset(covariate_df, donor_id %in% donor_list)
-  permuted <- covariate_df
-  permuted$disease_status <- sample(permuted$disease_status)
+  permuted = covariate_df
+  permuted$disease_status = sample(permuted$disease_status)
 
   
   print("done")
@@ -504,7 +505,7 @@ sef_permuted_regression = function(exprMat, sObj_meta, donor_list, covariate_df,
   
   sef_gp1 = tryCatch(glm( formula, family = poisson(link="log"), data = df1))  
   sef_gp2 = tryCatch(glm( formula, family = poisson(link="log"), data = df2))  
-  convergence_issue <- (!is.null(sef_gp1) && !sef_gp1$converged) || (!is.null(sef_gp2) && !sef_gp2$converged)
+  convergence_issue = (!is.null(sef_gp1) && !sef_gp1$converged) || (!is.null(sef_gp2) && !sef_gp2$converged)
   if (convergence_issue) {
     message("Convergence issue detected in at least one model. Retrying with reduced columns...")
     p = p - 1 # we test for p-1 moments
@@ -661,7 +662,7 @@ plot_carrier_with_hist = function(exprMat, gene, sObj_meta, donors_to_use_list, 
     hist_plot_breaks = est_grid
   }
   
-  p <- ggplot() +
+  p = ggplot() +
     geom_histogram(aes(x = y_agg, y = ..density..), #histogram density mode
                    breaks = hist_plot_breaks,
                    fill = "skyblue1", alpha = 0.75,color = "white") +
@@ -736,7 +737,7 @@ get_individual_sef_counts_model = function(donor_id, gene, exprMat, sObj_meta, d
   }
   
   ind_sObj_meta = sObj_meta[sObj_meta$donor_id == donor_id, , drop = FALSE]
-  ind_cell_barcodes <- rownames(ind_sObj_meta) # to subset individual-specific vector of expression counts
+  ind_cell_barcodes = rownames(ind_sObj_meta) # to subset individual-specific vector of expression counts
   y_ind = as.vector(exprMat[gene, ind_cell_barcodes, drop = F])
   y_ind = sqrt(y_ind + 1/2)
   n_indiv_cells = length(y_ind)

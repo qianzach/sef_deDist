@@ -22,7 +22,7 @@ args = commandArgs(trailingOnly = TRUE)
 n_perm = if (length(args) >= 1) suppressWarnings(as.integer(args[[1]])) else 10
 if (is.na(n_perm) || n_perm <= 0) {
   cat("Invalid or missing permutation count. Using default n_perm = 10\n")
-  n_perm <- 10
+  n_perm = 10
 }
 choice = if (length(args) >= 2) suppressWarnings(as.integer(args[[2]])) else 1
 if (!choice %in% c(1, 2, 3)) {
@@ -101,7 +101,7 @@ if(choice == 1){
 cat(paste0("permutation test with ", n_perm, " total tests complete.\n"))
 
 # ---- make qqplots ---- 
-pval_vector <- unlist( # extract from permutation object, from each iteration and for each gene the p-value
+pval_vector = unlist( # extract from permutation object, from each iteration and for each gene the p-value
   lapply(all_perm_results, function(inner_list) {
     vapply(inner_list, function(res) {
       if (!is.null(res) && "pval_1" %in% names(res)) res$pval_1 else NA_real_

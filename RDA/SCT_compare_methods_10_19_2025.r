@@ -1,4 +1,4 @@
-# comparison with SCT, pseudobulk methods
+# comparison with pseudobulk method, run on command line
 rm(list = ls())  
 library(dplyr) 
 library(ggplot2)
@@ -14,7 +14,9 @@ if (length(args) < 1) {
 }
 cell_type <- tolower(args[[1]])
 valid_ct <- c("cM", "cd8", "cd4") 
-if (cell_type == "cm") cell_type <- "cM"
+if (cell_type == "cm"){ # re-correct back to cM format
+  cell_type = "cM"
+}
 if (!cell_type %in% c("cM", "cd8", "cd4")) {
   stop("cell_type must be one of: cM, cd8, cd4", call. = FALSE)
 }
@@ -59,6 +61,9 @@ if (cell_type == "cd8") {
 
 # pseudobulk
 fair_pseudo_wilcoxon = function(pb_sObj, donors_i, gene_i){
+  # function: runs pseudobulked wilcoxon rank-sum test for each gene using every donor used in SEF regression test
+  # input: pseudobulked seurat object; donor IDs; gene of interest
+  # output: avg log FC and p-value
   single_gene_sObj = subset(pb_sObj,
                             subset  = donor_id %in% donors_i,
                             features = gene_i)

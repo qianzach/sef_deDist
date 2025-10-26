@@ -18,13 +18,13 @@ covariate_df = read.csv("covariate_data.csv")
 cat("[1] covariate data instantiated\n")
 
 # Parse command line arguments
-args <- commandArgs(trailingOnly = TRUE)
-n_perm <- if (length(args) >= 1) suppressWarnings(as.integer(args[[1]])) else 10
+args = commandArgs(trailingOnly = TRUE)
+n_perm = if (length(args) >= 1) suppressWarnings(as.integer(args[[1]])) else 10
 if (is.na(n_perm) || n_perm <= 0) {
   cat("Invalid or missing permutation count. Using default n_perm = 10\n")
   n_perm <- 10
 }
-choice <- if (length(args) >= 2) suppressWarnings(as.integer(args[[2]])) else 1
+choice = if (length(args) >= 2) suppressWarnings(as.integer(args[[2]])) else 1
 if (!choice %in% c(1, 2, 3)) {
   stop("Invalid cell type choice. Must be 1 (Monocytes), 2 (CD4), or 3 (CD8).")
 }
@@ -54,20 +54,17 @@ print("loaded up data.")
 
 
 ####### permutation test ####### 
-
-# EXPERIMENTS 
-base_seed <- 100
-
-# STORAGE 
-all_perm_results <- vector("list", n_perm)
+base_seed = 100
+all_perm_results = vector("list", n_perm)
 tested_genes = names(donors_to_use_per_gene)
 
 
 # ---- n_perm loops ---- 
-for (i in seq_len(n_perm)) {
+for (i in seq_len(n_perm)) { # run sequentially for each permutation iteration
   seed = base_seed + i
-  message(sprintf("Running permutation %d with seed %d", i, seed))
+  message(paste0("Running permutation %d with seed %d", i, seed))
   
+  # run in parallel for each gene
   perm_result = setNames(pbmclapply(tested_genes, function(name) {
     tryCatch({
       exprMat1 = exprMatReal[name, , drop = F]
@@ -79,33 +76,32 @@ for (i in seq_len(n_perm)) {
         seed = seed, p = 2, plot_flag = F
       )
     }, error = function(e) {
-      message(paste("Error in processing:", name, "-", e$message))
+      message(paste0("Error in processing: ", name, " - ", e$message))
       return(NULL)
     })
   }, mc.cores = 5, ignore.interactive = TRUE), tested_genes)
-  
   all_perm_results[[i]] = perm_result
   gc() #save memory
 }
-print("done")
+cat("done\n")
 
 if(choice == 1){
-  print("saving monocyte permutation test results...")
+  cat("saving monocyte permutation test results...\n")
   saveRDS(all_perm_results, file = "./cM_perm_res_new.rds")
-  print("saved")
+  cat("saved\n")
 } else if(choice == 2){
-  print("saving NEW CD4+ permutation test results...")
+  cat("saving CD4+ permutation test results...\n")
   saveRDS(all_perm_results, file = "./cd4_perm_res_new.rds")
-  print("saved")
+  cat("saved\n")
 } else if(choice == 3){
-  print("saving NEW CD8+ permutation test results...")
+  cat("saving CD8+ permutation test results...\n")
   saveRDS(all_perm_results, file = "./cd8_perm_res_new.rds")
-  print("saved")
+  cat("saved\n")
 }
-print(paste0("permutation test with ", n_perm, " total tests complete."))
+cat(paste0("permutation test with ", n_perm, " total tests complete.\n"))
 
 # ---- make qqplots ---- 
-pval_vector <- unlist(
+pval_vector <- unlist( # extract from permutation object, from each iteration and for each gene the p-value
   lapply(all_perm_results, function(inner_list) {
     vapply(inner_list, function(res) {
       if (!is.null(res) && "pval_1" %in% names(res)) res$pval_1 else NA_real_
@@ -114,7 +110,7 @@ pval_vector <- unlist(
   recursive = T,
   use.names = F)
 
-print(mean(pval_vector < 0.05))
+print(mean(pval_vector < 0.05)) # Proportion of false positives
 
 permutation_plot = gg_qqplot(pval_vector) + ggtitle("QQ Plot: Permutation Test") +
   theme(plot.title = element_text(size = 18))

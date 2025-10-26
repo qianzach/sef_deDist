@@ -27,7 +27,7 @@ res_list <- setNames(pbmclapply(genes_of_interest, function(name) { # run in par
     exprMat1 = exprMatReal[name, , drop = F]
     stablerunSeuratCounts_Concise(exprMat = exprMat1, donor_list = donors_to_use_per_gene[[name]], sObj_meta = sObj_metadata, p = p, plot_flag = F) 
   }, error = function(e) {
-    message(paste("Error in processing:", name, "-", e$message))
+    message(paste0("Error in processing: ", name, " - ", e$message))
     return(NULL)
   })
 }, mc.cores = 3, ignore.interactive = TRUE), genes_of_interest)

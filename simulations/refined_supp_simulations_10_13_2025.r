@@ -17,7 +17,6 @@ source("./density_estimation/simulations/simulations_github/simulations_main_10_
 
 ########## Fig S.1 CARRIER DENSITY ##########
 #  ---- POISSON GAMMA  ----
-args <- commandArgs(trailingOnly = TRUE)  
 DataType = "pg"
 n1 = 100; n2 = 100
 p = 2
@@ -39,7 +38,6 @@ pdf(GraphName, width = 5, height = 5)
 print(test$carrier_plt)
 dev.off() 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL  ----
-args <- commandArgs(trailingOnly = TRUE)
 DataType = "zinb"
 mu = 10; mu2 = 10
 theta = 5
@@ -69,10 +67,8 @@ dev.off()
 
 ########## Top Half Fig S.2, S.3 QQ Plots ##########
 #  ---- POISSON GAMMA p = 3  ----
-args <- commandArgs(trailingOnly = TRUE)  
-DataType = "PG"
+DataType = "pg"
 maxIter = 300 
-nCPUS = 10 
 n1 = 100; n2 = 100
 p = 3
 alpha2 = 20
@@ -112,10 +108,8 @@ print(realistic_qqplot)
 dev.off() 
 
 #  ---- POISSON GAMMA n1 = 100 n2 = 200  ----
-args <- commandArgs(trailingOnly = TRUE)  
-DataType = "PG"
+DataType = "pg"
 maxIter = 300 
-nCPUS = 10 
 n1 = 100; n2 = 200
 p = 2
 alpha2 = 20
@@ -154,10 +148,8 @@ print(realistic_qqplot)
 dev.off() 
 
 #  ---- ZINB p = 3  ----
-args <- commandArgs(trailingOnly = TRUE)
 DataType = "zinb"
 maxIter = 300 
-nCPUS = 10 
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 100
@@ -198,10 +190,8 @@ dev.off()
 
 
 #  ---- ZINB n1=100, n2=200  ----
-args <- commandArgs(trailingOnly = TRUE)
 DataType = "zinb"
 maxIter = 300 
-nCPUS = 10 
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 200
@@ -242,7 +232,6 @@ dev.off()
 
 ########## Bottom Half Fig S.2, S.3 Power Analysis ##########
 #  ---- POISSON GAMMA VARIANCE p = 3----
-args <- commandArgs(trailingOnly = TRUE)  
 DataType = "pg"
 de_type = "variance"
 maxIter = 300 
@@ -346,7 +335,6 @@ pdf(GraphName, width = 5, height = 5)
 print(obj_pw)
 dev.off() 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL VARIANCE  p = 3 ----
-args <- commandArgs(trailingOnly = TRUE)
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 100
@@ -458,7 +446,6 @@ dev.off()
 
 
 #  ---- POISSON GAMMA VARIANCE n1 = 100; n2 = 200 ----
-args <- commandArgs(trailingOnly = TRUE)  
 DataType = "pg"
 de_type = "variance"
 maxIter = 300 
@@ -562,7 +549,6 @@ print(obj_pw)
 dev.off() 
 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL VARIANCE n1 = 100; n2 = 200----
-args <- commandArgs(trailingOnly = TRUE)
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 200
@@ -673,7 +659,6 @@ dev.off()
 
 ########## Fig S.4 Power Analysis ##########
 #  ---- POISSON GAMMA F-TEST ----
-args <- commandArgs(trailingOnly = TRUE)  
 DataType = "pg"
 de_type = "variance"
 maxIter = 300 
@@ -774,7 +759,6 @@ obj_pw = ggplot(df_pw2, aes(x = effect_size, y = Power, group = Methods, col=Met
 print(obj_pw)
 
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL F-TEST ----
-args <- commandArgs(trailingOnly = TRUE)
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 100

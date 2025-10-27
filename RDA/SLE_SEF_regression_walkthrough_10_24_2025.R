@@ -41,11 +41,8 @@ dim(subset(pval_df, bonferroni_pval < 0.05))
 pval_df = pval_df %>% arrange(bonferroni_pval)
 sig = subset(pval_df, bonferroni_pval < 0.05)
 
-# pathway analysis reconstruction (figure 5)
-# Note on enrichment results: Gene mapping database of clusterProfiler and org.Hs.eg.db has been updated to v.4.16.0 and v.3.21 for R.4.5.1. Original analysis was under R 4.3.1 using > v.4.10 and > v.3.19, respectively.
-# As a result, a few of the pathways of interest have more general or specific distinctions of our original pathways (cytokine production in monocytes and regulation of protein complex assembly in CD4+ T-cells)
-
-res = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/results/enrichment_res/all_cd8_interesting_pathways.csv", row.names = 1)
+# enrichment Figure 5
+res = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/results/enrichment_res/cd8_enriched_pathways.csv", row.names = 1)
 res$Count = sapply(strsplit(res$geneID, "/"), length)
 ego_reconstructed = new("enrichResult")
 ego_reconstructed@result = res

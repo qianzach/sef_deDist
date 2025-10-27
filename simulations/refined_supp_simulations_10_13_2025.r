@@ -77,21 +77,18 @@ beta1 = 2
 beta2 = 2
 repID = 77  
 pvVec_margin = NULL 
-pv_list <- pbmclapply(1:maxIter, function(i) {
+pv_list = pbmclapply(1:maxIter, function(i) {
   tryCatch({
-    res <- simulatePGRealistic(
+    res = simulatePGRealistic(
       repID = repID,
       idx = i,
-      alpha1 = alpha1,
-      alpha2 = alpha2,
-      beta1 = beta1,
-      beta2 = beta2,
-      n1 = n1,
-      n2 = n2,
+      alpha1 = alpha1, alpha2 = alpha2,
+      beta1 = beta1, beta2 = beta2,
+      n1 = n1, n2 = n2,
       de_type = "mean",
       p = p
     )
-    pv <- res$pval_1
+    pv = res$pval_1
     if (is.null(pv) || !is.numeric(pv) || !is.finite(pv)) return(NULL)
     as.numeric(pv)
   }, error = function(e) {
@@ -99,7 +96,7 @@ pv_list <- pbmclapply(1:maxIter, function(i) {
   })
 }, mc.cores = 4, mc.set.seed = TRUE)
 
-pvVec_margin <- unlist(pv_list, use.names = FALSE)
+pvVec_margin = unlist(pv_list, use.names = FALSE)
 gg_qqplot(unlist(pvVec_margin))
 GraphName = paste0("./varying_cell_cts_qqplot-15-10-", DataType, "-n1-", n1, "-n2-", n2, "-p-", p,".pdf" )
 pdf(GraphName, width = 5, height = 5)
@@ -118,7 +115,7 @@ beta1 = 2
 beta2 = 2
 repID = 77  
 pvVec_margin = NULL 
-pv_list <- pbmclapply(1:maxIter, function(i) {
+pv_list = pbmclapply(1:maxIter, function(i) {
   tryCatch({
     res <- simulatePGRealistic(
       repID = repID,
@@ -127,19 +124,18 @@ pv_list <- pbmclapply(1:maxIter, function(i) {
       alpha2 = alpha2,
       beta1 = beta1,
       beta2 = beta2,
-      n1 = n1,
-      n2 = n2,
+      n1 = n1, n2 = n2,
       de_type = "mean",
       p = p
     )
-    pv <- res$pval_1
+    pv = res$pval_1
     if (is.null(pv) || !is.numeric(pv) || !is.finite(pv)) return(NULL)
     as.numeric(pv)
   }, error = function(e) {
     NULL  # skip failures
   })
 }, mc.cores = 4, mc.set.seed = TRUE)
-pvVec_margin <- unlist(pv_list, use.names = FALSE)
+pvVec_margin = unlist(pv_list, use.names = FALSE)
 gg_qqplot(unlist(pvVec_margin))
 GraphName = paste0("./varying_cell_cts_qqplot-15-10", DataType, "-n1-", n1, "-n2-", n2, "-p-", p,".pdf" )
 pdf(GraphName, width = 5, height = 5)
@@ -162,7 +158,7 @@ repID = 77
 p = 3
 cores = 5
 pvVec_margin = NULL 
-pv_list <- pbmclapply(1:maxIter, function(i) {
+pv_list = pbmclapply(1:maxIter, function(i) {
   tryCatch({
     res = simulateZINB(
       repID = repID, idx = i,
@@ -172,14 +168,14 @@ pv_list <- pbmclapply(1:maxIter, function(i) {
       n1 = n1, n2 = n2,
       de_type = de_type, p = p
     )
-    pv <- res$pval_1
+    pv = res$pval_1
     if (is.null(pv) || !is.numeric(pv) || !is.finite(pv)) return(NULL)
     as.numeric(pv)
   }, error = function(e) {
     NULL  
   })
 }, mc.cores = cores, mc.set.seed = TRUE)
-pvVec_margin <- unlist(pv_list, use.names = FALSE)
+pvVec_margin = unlist(pv_list, use.names = FALSE)
 
 gg_qqplot(unlist(pvVec_margin)) + ggtitle("ZINB (p = 3)")
 GraphName = paste0("./varying_cell_cts_qqplot-", DataType, "-n1-", n1, "-n2-", n2, "-p-", p, ".pdf" )
@@ -204,7 +200,7 @@ repID = 77
 p = 2
 cores = 5
 pvVec_margin = NULL 
-pv_list <- pbmclapply(1:maxIter, function(i) {
+pv_list = pbmclapply(1:maxIter, function(i) {
   tryCatch({
     res = simulateZINB(
       repID = repID, idx = i,
@@ -214,15 +210,14 @@ pv_list <- pbmclapply(1:maxIter, function(i) {
       n1 = n1, n2 = n2,
       de_type = de_type, p = p
     )
-    pv <- res$pval_1
+    pv = res$pval_1
     if (is.null(pv) || !is.numeric(pv) || !is.finite(pv)) return(NULL)
     as.numeric(pv)
   }, error = function(e) {
     NULL 
   })
 }, mc.cores = cores, mc.set.seed = TRUE)
-pvVec_margin <- unlist(pv_list, use.names = FALSE)
-
+pvVec_margin = unlist(pv_list, use.names = FALSE)
 gg_qqplot(unlist(pvVec_margin))
 GraphName = paste0("./varying_cell_cts_qqplot-", DataType, "-n1-", n1, "-n2-", n2, "-p-", p, ".pdf" )
 pdf(GraphName, width = 5, height = 5)
@@ -240,13 +235,13 @@ tau1 = 2; tau2 = 2
 n1 = 100; n2 = 100
 p = 3
 repID = 77 
-mu1  <- 10
-V1   <- 15
-params1 <- gamma_params(mu1, V1)
-alpha1 <- params1$alpha
-beta1  <- params1$beta
-target_means <- 10
-target_variance <- seq(15, 23, length.out = 10)
+mu1  = 10
+V1   = 15
+params1 = gamma_params(mu1, V1)
+alpha1 = params1$alpha
+beta1  = params1$beta
+target_means = 10
+target_variance = seq(15, 23, length.out = 10)
 if(any(target_means >= target_variance)) { # means must be less than the constant variance
   stop("Each target mean must be less than the target variance.")
 }
@@ -271,12 +266,12 @@ combine = function(x, ...){
   mapply(rbind, x, ..., SIMPLIFY = FALSE)
 } 
 for (idx in 1:(dim(result_df)[1])) {
-  alpha2 <- alpha2s[idx]
-  beta2 <- beta2s[idx]
+  alpha2 = alpha2s[idx]
+  beta2 = beta2s[idx]
   print(paste0("mean =", result_df$target_mean[idx], ", variance = ", result_df$target_variance[idx]))
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
     simulatePGRealistic(alpha1 = alpha1, alpha2 = alpha2, beta1 = beta1, beta2 = beta2, 
                         n1 = n1, n2 = n2,repID = repID,de_type = de_type, p = p, K = NULL, idx = i)
   }
@@ -295,10 +290,10 @@ for (idx in 1:(dim(result_df)[1])) {
     list(t_testPB = t_testPB, ksPB = ksPB)
   }
 
-  pvMat_margin <- cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
-  pvMat_mom  <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin = cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
+  pvMat_mom  = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl)
 q = 0.05 
@@ -360,7 +355,7 @@ combine = function(x, ...){
 } 
 bad_test_cases = array(NA, dim = length(b_thetas))
 for (idx_b in 1:length(b_thetas)) {
-  b_theta <- b_thetas[idx_b]
+  b_theta = b_thetas[idx_b]
   print(paste0("scale factor b_theta =", b_theta, " or (variance) = ", b_theta*theta))
   
   
@@ -398,12 +393,12 @@ for (idx_b in 1:length(b_thetas)) {
   bad_test_cases[idx_b] = length(output) - length(output1)
   
   if (is.null(pvMat_margin)) {
-    pvMat_margin <- list()
+    pvMat_margin = list()
   }
-  pvMat_margin[[length(pvMat_margin) + 1]] <- sapply(output1, function(x) x$pval_1)
-  pvMat_mom    <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest    <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks    <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin[[length(pvMat_margin) + 1]] = sapply(output1, function(x) x$pval_1)
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl) #stop parallel computing
 
@@ -454,19 +449,19 @@ tau1 = 2; tau2 = 2
 n1 = 100; n2 = 200
 p = 2
 repID = 77 
-mu1  <- 10
-V1   <- 15
-params1 <- gamma_params(mu1, V1)
-alpha1 <- params1$alpha
-beta1  <- params1$beta
-target_means <- 10
-target_variance <- seq(15, 23, length.out = 10)
+mu1 = 10
+V1 = 15
+params1 = gamma_params(mu1, V1)
+alpha1 = params1$alpha
+beta1 = params1$beta
+target_means = 10
+target_variance = seq(15, 23, length.out = 10)
 if(any(target_means >= target_variance)) { # means must be less than the constant variance
   stop("Each target mean must be less than the target variance.")
 }
-alpha2s <- target_means^2 / (target_variance - target_means)
-beta2s  <- target_means / (target_variance - target_means)
-result_df <- data.frame(
+alpha2s = target_means^2 / (target_variance - target_means)
+beta2s = target_means / (target_variance - target_means)
+result_df = data.frame(
   target_mean = target_means,
   target_variance = target_variance,
   alpha2 = alpha2s,
@@ -485,12 +480,12 @@ combine = function(x, ...){
   mapply(rbind, x, ..., SIMPLIFY = FALSE)
 } 
 for (idx in 1:(dim(result_df)[1])) {
-  alpha2 <- alpha2s[idx]
-  beta2 <- beta2s[idx]
+  alpha2 = alpha2s[idx]
+  beta2 = beta2s[idx]
   print(paste0("mean =", result_df$target_mean[idx], ", variance = ", result_df$target_variance[idx]))
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
     simulatePGRealistic(alpha1 = alpha1, alpha2 = alpha2, beta1 = beta1, beta2 = beta2, 
                         n1 = n1, n2 = n2,repID = repID,de_type = de_type, p = p, K = NULL, idx = i)
   }
@@ -509,10 +504,10 @@ for (idx in 1:(dim(result_df)[1])) {
     list(t_testPB = t_testPB, ksPB = ksPB)
   }
   
-  pvMat_margin <- cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
-  pvMat_mom  <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin = cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl)
 q = 0.05 
@@ -574,12 +569,12 @@ combine = function(x, ...){
 } 
 bad_test_cases = array(NA, dim = length(b_thetas))
 for (idx_b in 1:length(b_thetas)) {
-  b_theta <- b_thetas[idx_b]
+  b_theta = b_thetas[idx_b]
   print(paste0("scale factor b_theta =", b_theta, " or (variance) = ", b_theta*theta))
   
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     tryCatch({
       simulateZINB(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
                    b_pi = b_pi, pi = pi, pi2 = pi2,
@@ -589,7 +584,7 @@ for (idx_b in 1:length(b_thetas)) {
       return(NULL)
     })
   }
-  output1 <- Filter(Negate(is.null), output) 
+  output1 = Filter(Negate(is.null), output) 
   print("MoM:")
   outputMoM = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     simulateMoMRealistic(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
@@ -612,12 +607,12 @@ for (idx_b in 1:length(b_thetas)) {
   bad_test_cases[idx_b] = length(output) - length(output1)
   
   if (is.null(pvMat_margin)) {
-    pvMat_margin <- list()
+    pvMat_margin = list()
   }
   pvMat_margin[[length(pvMat_margin) + 1]] <- sapply(output1, function(x) x$pval_1)
-  pvMat_mom    <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest    <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks    <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl) #stop parallel computing
 
@@ -667,19 +662,19 @@ tau1 = 2; tau2 = 2
 n1 = 100; n2 = 100
 p = 2
 repID = 77 
-mu1  <- 10
-V1   <- 15
-params1 <- gamma_params(mu1, V1)
-alpha1 <- params1$alpha
-beta1  <- params1$beta
-target_means <- 10
-target_variance <- seq(15, 23, length.out = 10)
+mu1 = 10
+V1 = 15
+params1 = gamma_params(mu1, V1)
+alpha1 = params1$alpha
+beta1 = params1$beta
+target_means = 10
+target_variance = seq(15, 23, length.out = 10)
 if(any(target_means >= target_variance)) { # means must be less than the constant variance
   stop("Each target mean must be less than the target variance.")
 }
-alpha2s <- target_means^2 / (target_variance - target_means)
-beta2s  <- target_means / (target_variance - target_means)
-result_df <- data.frame(
+alpha2s = target_means^2 / (target_variance - target_means)
+beta2s = target_means / (target_variance - target_means)
+result_df = data.frame(
   target_mean = target_means,
   target_variance = target_variance,
   alpha2 = alpha2s,
@@ -698,12 +693,12 @@ combine = function(x, ...){
   mapply(rbind, x, ..., SIMPLIFY = FALSE)
 } 
 for (idx in 1:(dim(result_df)[1])) {
-  alpha2 <- alpha2s[idx]
-  beta2 <- beta2s[idx]
+  alpha2 = alpha2s[idx]
+  beta2 = beta2s[idx]
   print(paste0("mean =", result_df$target_mean[idx], ", variance = ", result_df$target_variance[idx]))
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
     simulatePGRealistic(alpha1 = alpha1, alpha2 = alpha2, beta1 = beta1, beta2 = beta2, 
                         n1 = n1, n2 = n2,repID = repID,de_type = de_type, p = p, K = NULL, idx = i)
   }
@@ -722,10 +717,10 @@ for (idx in 1:(dim(result_df)[1])) {
     list(f_testPB = f_testPB, ksPB = ksPB)
   }
   
-  pvMat_margin <- cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
-  pvMat_mom  <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ftest <- cbind(pvMat_ftest, sapply(outputPB, function(x) x$f_testPB$pval))
-  pvMat_ks <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin = cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
+  pvMat_mom  = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ftest = cbind(pvMat_ftest, sapply(outputPB, function(x) x$f_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl)
 q = 0.05 
@@ -784,12 +779,11 @@ combine = function(x, ...){
 } 
 bad_test_cases = array(NA, dim = length(b_thetas))
 for (idx_b in 1:length(b_thetas)) {
-  b_theta <- b_thetas[idx_b]
+  b_theta = b_thetas[idx_b]
   print(paste0("scale factor b_theta =", b_theta, " or (variance) = ", b_theta*theta))
   
-  
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     tryCatch({
       simulateZINB(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
                    b_pi = b_pi, pi = pi, pi2 = pi2,
@@ -822,19 +816,19 @@ for (idx_b in 1:length(b_thetas)) {
   bad_test_cases[idx_b] = length(output) - length(output1)
   
   if (is.null(pvMat_margin)) {
-    pvMat_margin <- list()
+    pvMat_margin = list()
   }
-  pvMat_margin[[length(pvMat_margin) + 1]] <- sapply(output1, function(x) x$pval_1)
-  pvMat_mom    <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ftest    <- cbind(pvMat_ftest, sapply(outputPB, function(x) x$f_testPB$pval))
-  pvMat_ks    <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin[[length(pvMat_margin) + 1]] = sapply(output1, function(x) x$pval_1)
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ftest = cbind(pvMat_ftest, sapply(outputPB, function(x) x$f_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl) #stop parallel computing
 
 Allmethods = c("margin", "mom", "ftest", "ks")
 init_b_theta = b_thetas[1] #used purely for dataframe
 q = 0.05 
-margin_sef <- sapply(pvMat_margin, function(vec) mean(vec < q, na.rm = TRUE))
+margin_sef = sapply(pvMat_margin, function(vec) mean(vec < q, na.rm = TRUE))
 df_pw = data.frame(effect_size = (b_thetas*theta/theta), margin = margin_sef,
                    mom = colMeans(pvMat_mom < q, na.rm = T),
                    ftest = colMeans(pvMat_ftest < q),

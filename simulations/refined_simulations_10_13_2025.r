@@ -21,10 +21,8 @@ DataType = "pg"
 maxIter = 300 
 n1 = 100; n2 = 100
 p = 2
-alpha2 = 20
-alpha1 = 20
-beta1 = 2
-beta2 = 2
+alpha2 = 20; alpha1 = 20
+beta1 = 2; beta2 = 2
 repID = 77  
 pvVec_margin = NULL 
 output <- pbmclapply(1:maxIter, function(i) {
@@ -299,7 +297,6 @@ mu = 10
 mu2s = seq(10, 13, 0.25)
 theta = 5
 n1 = 100; n2 = 100
-ncells = 500
 sigma_sq = 5
 b_theta = 1
 b_pi = 1
@@ -326,7 +323,7 @@ for (idx_mu2 in 1:length(mu2s)) {
   
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     tryCatch({
       simulateZINB(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
                    b_pi = b_pi, pi = pi, pi2 = pi2,
@@ -336,7 +333,7 @@ for (idx_mu2 in 1:length(mu2s)) {
       return(NULL)
     })
   }
-  output1 <- Filter(Negate(is.null), output) 
+  output1 = Filter(Negate(is.null), output) 
   print("MoM:")
   outputMoM = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     simulateMoMRealistic(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
@@ -359,17 +356,17 @@ for (idx_mu2 in 1:length(mu2s)) {
   bad_test_cases[idx_mu2] = length(output) - length(output1)
   
   if (is.null(pvMat_margin)) {
-    pvMat_margin <- list()
+    pvMat_margin = list()
   }
-  pvMat_margin[[length(pvMat_margin) + 1]] <- sapply(output1, function(x) x$pval_1)
-  pvMat_mom    <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest    <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks    <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin[[length(pvMat_margin) + 1]] = sapply(output1, function(x) x$pval_1)
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl) #stop parallel computing
 Allmethods = c("margin", "mom", "ks","ttest")
 q = 0.05 
-margin_sef <- sapply(pvMat_margin, function(vec) mean(vec < q, na.rm = TRUE))
+margin_sef = sapply(pvMat_margin, function(vec) mean(vec < q, na.rm = TRUE))
 df_pw = data.frame(effect_size = (mu2s - mu), margin = margin_sef,
                    mom = colMeans(pvMat_mom < q, na.rm = T),
                    ttest = colMeans(pvMat_ttest < q),
@@ -407,7 +404,6 @@ nCPUS = 10
 mu = 10; mu2 = 10
 theta = 5
 n1 = 100; n2 = 100
-ncells = 500
 sigma_sq = 5
 b_thetas = seq(1, 1.70, by =  0.07)
 b_pi = 1
@@ -429,11 +425,11 @@ combine = function(x, ...){
 } 
 bad_test_cases = array(NA, dim = length(b_thetas))
 for (idx_b in 1:length(b_thetas)) {
-  b_theta <- b_thetas[idx_b]
+  b_theta = b_thetas[idx_b]
   print(paste0("scale factor b_theta =", b_theta, " or (variance) = ", b_theta*theta))
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     tryCatch({
       simulateZINB(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
                    b_pi = b_pi, pi = pi, pi2 = pi2,
@@ -443,7 +439,7 @@ for (idx_b in 1:length(b_thetas)) {
       return(NULL)
     })
   }
-  output1 <- Filter(Negate(is.null), output) 
+  output1 = Filter(Negate(is.null), output) 
   print("MoM:")
   outputMoM = foreach(i = 1:maxIter, .packages = c("ggplot2","truncnorm")) %dopar% {
     simulateMoMRealistic(mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, b_theta = b_theta,
@@ -466,19 +462,19 @@ for (idx_b in 1:length(b_thetas)) {
   bad_test_cases[idx_b] = length(output) - length(output1)
   
   if (is.null(pvMat_margin)) {
-    pvMat_margin <- list()
+    pvMat_margin = list()
   }
-  pvMat_margin[[length(pvMat_margin) + 1]] <- sapply(output1, function(x) x$pval_1)
-  pvMat_mom    <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest    <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks    <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin[[length(pvMat_margin) + 1]] = sapply(output1, function(x) x$pval_1)
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl) 
 
 Allmethods = c("margin", "mom", "ttest", "ks")
 init_b_theta = b_thetas[1] #used purely for dataframe
 q = 0.05 
-margin_sef <- sapply(pvMat_margin, function(vec) mean(vec < q, na.rm = TRUE))
+margin_sef = sapply(pvMat_margin, function(vec) mean(vec < q, na.rm = TRUE))
 df_pw = data.frame(effect_size = (b_thetas*theta/theta), margin = margin_sef,
                    mom = colMeans(pvMat_mom < q, na.rm = T),
                    ttest = colMeans(pvMat_ttest < q),

@@ -56,6 +56,11 @@ In the remaining files, we provide scripts run on the command line for the pseud
 In this section, we overview the formatted data objects used in our simulations and real data analysis that are found on [Zenodo](https://zenodo.org/records/17402494?preview=1&token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjM0MzNkNDE1LWY4ZTctNDVhYi1hODk5LWJmNzhjNzg4MDUxNyIsImRhdGEiOnt9LCJyYW5kb20iOiI1OTVhOGVjZTBkYmZkZjBjMDA2ZTY4ZTBmNmVjN2Q3NiJ9.ONISAR5Zgx5GZ0odRZKmfSKmKTzBUTRyZ250S-hCc18EzXopSVeq12rdOqvJt_VgHZaHObG8x909Sya_aV9CVQ).
 `CELLTYPE` can be exchanged for the specific cell types used in our analysis.
 
+*Note on enrichment results: The Gene Ontology resource has updated its term counts and annotations since the original downstream analysis was conducted.
+As a result, a few of the pathways of interest have more general or specific distinctions of our original pathways.
+This includes two pathways: cytokine production in monocytes and regulation of protein complex assembly in CD4+ T-cells. Despite this, our results retain consistency in interpretation.*
+
+
 | Object Name | Format     | Description |
 |---------------|----------|------------|
 | `covariate_data`           | `.csv`     | Covariate data with donor ID and disease status specification |

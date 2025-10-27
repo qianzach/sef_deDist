@@ -318,7 +318,7 @@ combine = function(x, ...){
 } 
 bad_test_cases = array(NA, dim = length(mu2s))
 for (idx_mu2 in 1:length(mu2s)) {
-  mu2 <- mu2s[idx_mu2]
+  mu2 = mu2s[idx_mu2]
   print(paste0("mu2: ", mu2))
   
   

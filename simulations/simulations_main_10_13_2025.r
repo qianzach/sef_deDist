@@ -13,8 +13,6 @@ library(doSNOW)
 library(foreach)
 library(doParallel) 
 library(Hmisc)
-library(Ake)
-library(truncnorm)
 library(Matrix)
 
 ########## 1. DATA GENERATION FUNCTIONS ##########
@@ -22,97 +20,59 @@ simu_poigamma_vary_cellcts = function(seed = 100, lower = 300, upper = 1000, alp
   # function: simulate Poisson-Gamma mixture model data with alpha and beta are the shape and size parameters
   # input: seed; lower bound; upper bound; alpha group 1/2; beta group 1/2, number of samples in group 1/2
   # output: list of 2 lists (length n1 and n2) with each element being an array 
-  Y1_list <- vector("list", n1) 
-  Y2_list <- vector("list", n2)
+  Y1_list = vector("list", n1) 
+  Y2_list = vector("list", n2)
   set.seed(seed = seed)
   for (i in 1:n1) { #GROUP 1
-    n_cells_i <- sample(lower:upper, 1)
+    n_cells_i = sample(lower:upper, 1)
     lambda1i = rgamma(1, shape = alpha1, rate = beta1)
-    Y1_list[[i]] <- rpois(n_cells_i, lambda1i)
+    Y1_list[[i]] = rpois(n_cells_i, lambda1i)
   }
   for (i in 1:n2) { #GROUP 2 
-    n_cells_i <- sample(lower:upper, 1)
+    n_cells_i = sample(lower:upper, 1)
     lambda2i = rgamma(1, shape = alpha2, rate = beta2)
     Y2_list[[i]] <- rpois(n_cells_i, lambda2i)
   }  
   return(list(Y1 = Y1_list, Y2 = Y2_list))
 }
-simu_zinb_vary_cellcts <- function(n1, n2, mu, mu2, theta, sigma_sq = 0.5, pi = 0.5, pi2 = 0.5,
+simu_zinb_vary_cellcts = function(n1, n2, mu, mu2, theta, sigma_sq = 0.5, pi = 0.5, pi2 = 0.5,
                                    b_pi = 1, b_theta = 1, de_type = 'dispersion', seed = 100, lower = 300, upper = 1000) {
-  # function: simulate Zero-inflated Negative Binomial model data, offering dispersion or mixture
+  # function: simulate Zero-inflated Negative Binomial model data, offering dispersion or mean
   # input: seed; lower bound; upper bound; alpha group 1/2; beta group 1/2, number of samples in group 1/2
   # output: list of 2 lists (length n1 and n2) with each element being an array 
   set.seed(seed)
   # Output lists
-  Y1_list <- vector("list", n1)
-  Y2_list <- vector("list", n2)
+  Y1_list = vector("list", n1)
+  Y2_list = vector("list", n2)
   
   # Individual-specific means
-  mu_i_group1 <- rtruncnorm(n1, a = 0, mean = mu, sd = sqrt(sigma_sq))
+  mu_i_group1 = rtruncnorm(n1, a = 0, mean = mu, sd = sqrt(sigma_sq))
   
   if (de_type == 'dispersion') {
-    mu2 <- mu
-    theta2 <- theta * b_theta
-    pi2 <- pi
-    mu_i_group2 <- rtruncnorm(n2, a = 0, mean = mu2, sd = sqrt(sigma_sq))
-    
-  } else if (de_type == 'mixture') {
-    if (b_pi < 0 || b_pi > 1) stop("b_pi must be between 0 and 1 for mixture")
-    
-    theta2 <- theta * b_theta
-    mu_i_group2 <- rtruncnorm(n2, a = 0, mean = mu2, sd = sqrt(sigma_sq))
-    
-    for (i in seq_len(n1)) {
-      n_cells_i <- sample(lower:upper, 1)
-      Y1_list[[i]] <- sapply(seq_len(n_cells_i), function(j) {
-        if (runif(1) < pi) {
-          0
-        } else {
-          if (runif(1) < b_pi) {
-            rnbinom(1, size = theta, mu = mu_i_group1[i])
-          } else {
-            rnbinom(1, size = theta2, mu = mu_i_group2[i])
-          }
-        }
-      })
-    }
-    
-    for (i in seq_len(n2)) {
-      n_cells_i <- sample(lower:upper, 1)
-      Y2_list[[i]] <- sapply(seq_len(n_cells_i), function(j) {
-        if (runif(1) < pi2) {
-          0
-        } else {
-          if (runif(1) < (1 - b_pi)) {
-            rnbinom(1, size = theta, mu = mu_i_group1[i])
-          } else {
-            rnbinom(1, size = theta2, mu = mu_i_group2[i])
-          }
-        }
-      })
-    }
-    
-    return(list(Y1 = Y1_list, Y2 = Y2_list))
+    mu2 = mu
+    theta2 = theta * b_theta
+    pi2 = pi
+    mu_i_group2 = rtruncnorm(n2, a = 0, mean = mu2, sd = sqrt(sigma_sq))
     
   } else if (de_type == "mean") {
-    theta2 <- theta
-    pi2 <- pi
-    mu_i_group2 <- rtruncnorm(n2, a = 0, mean = mu2, sd = sqrt(sigma_sq))
+    theta2 = theta
+    pi2 = pi
+    mu_i_group2 = rtruncnorm(n2, a = 0, mean = mu2, sd = sqrt(sigma_sq))
   } else {
-    stop('Invalid de_type specified. Choose either "mean", "dispersion", or "mixture".')
+    stop('Invalid de_type specified. Choose either "mean", "dispersion".')
   }
   
-  # Default ZINB simulation for mean/dispersion
-  for (i in seq_len(n1)) {
-    n_cells_i <- sample(lower:upper, 1)
-    Y1_list[[i]] <- sapply(seq_len(n_cells_i), function(j) {
+  # Default ZINB simulation for mean/dispersion de
+  for (i in seq_len(n1)) { # group 1
+    n_cells_i = sample(lower:upper, 1)
+    Y1_list[[i]] = sapply(seq_len(n_cells_i), function(j) {
       if (runif(1) < pi) 0 else rnbinom(1, size = theta, mu = mu_i_group1[i])
     })
   }
   
-  for (i in seq_len(n2)) {
-    n_cells_i <- sample(lower:upper, 1)
-    Y2_list[[i]] <- sapply(seq_len(n_cells_i), function(j) {
+  for (i in seq_len(n2)) { # group 2
+    n_cells_i = sample(lower:upper, 1)
+    Y2_list[[i]] = sapply(seq_len(n_cells_i), function(j) {
       if (runif(1) < pi2) 0 else rnbinom(1, size = theta2, mu = mu_i_group2[i])
     })
   }
@@ -122,7 +82,7 @@ simu_zinb_vary_cellcts <- function(n1, n2, mu, mu2, theta, sigma_sq = 0.5, pi = 
 
 ########## 2. SEF HELPER FUNCTIONS ##########
 #  ---- DISCRETE GAUSSIAN KERNEL FUNCTION ----
-continuous_discrete_kde <- function(y, eval_points, bw = 0.25) {
+continuous_discrete_kde = function(y, eval_points, bw = 0.25) {
   # function: continuous gaussian kernel density estimate evaluated at the integer values the data is in 
   # input: expression array, points to evaluate (similar to est_midpoints)
   # output: density estimate evaluated at parameter-passed points
@@ -144,8 +104,8 @@ get_countdata_bin_counts = function(Y, grid_points){
   counts_matrix = matrix(0, nrow = n, ncol = K) # init n x K matrix to store bin counts
   
   for (i in seq_along(Y)) {
-    tab <- table(factor(Y[[i]], levels = grid_points)) #factor() to ensure that values potentially not in a bin are tabulated still before counting
-    counts_matrix[i, ] <- as.numeric(tab) #revert back to integers
+    tab = table(factor(Y[[i]], levels = grid_points)) #factor() to ensure that values potentially not in a bin are tabulated still before counting
+    counts_matrix[i, ] = as.numeric(tab) #revert back to integers
   }
   
   return(counts_matrix)
@@ -153,7 +113,7 @@ get_countdata_bin_counts = function(Y, grid_points){
 
 #  ---- POWER ANALYSIS SPECIFIC  ----
 
-gamma_params <- function(mu, V) {
+gamma_params = function(mu, V) {
   # function: given mean and variance, provides alpha and beta values to match the params
   # input: mean; variance
   # output: alpha; beta
@@ -222,13 +182,13 @@ compute_empirical_power = function(pval_matrix, alpha = 0.05){
   return(colMeans(pmat < alpha))
 }
 
-gg_qqplot <- function(ps, ci = 0.95) {
+gg_qqplot = function(ps, ci = 0.95) {
   # function: plotting qq plot with 95% confidence interval band using input of raw p-values
   # input: p-value array; confidence interval 
   # output: QQ plot
   n  = length(ps)
   df = data.frame(
-    observed = -log10(sort(ps)),
+    observed = -log10(sort(ps)), 
     expected = -log10(ppoints(n)),
     clower   = -log10(qbeta(p = (1 - ci) / 2, shape1 = 1:n, shape2 = n:1)),
     cupper   = -log10(qbeta(p = (1 + ci) / 2, shape1 = 1:n, shape2 = n:1))
@@ -237,7 +197,7 @@ gg_qqplot <- function(ps, ci = 0.95) {
   log10Po = expression(paste("Observed -log"[10], plain(P)))
   max_lim = max(df$expected, df$observed, df$clower, df$cupper, na.rm = TRUE) 
   
-  ggplot(df) +
+  plt = ggplot(df) +
     geom_ribbon(
       mapping = aes(x = expected, ymin = clower, ymax = cupper),
       alpha = 0.1, fill = "steelblue"
@@ -246,10 +206,14 @@ gg_qqplot <- function(ps, ci = 0.95) {
     geom_abline(intercept = 0, slope = 1, alpha = 0.5) + 
     theme_bw(base_size = 22) +
     xlab(log10Pe) + ylab(log10Po) 
+  return(plt)
 } 
 ########## 3. SEF FUNCTIONS ##########
 #  ---- POISSON GAMMA  ----
 simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,  lower = 300, upper = 1000, n1 = 100, n2 = 100, plot_flag = F, idx, alpha1, alpha2, beta1, beta2){
+  # function: run Poisson-Gamma model
+  # input: parameters of interest
+  # output: 
   if (de_type == "mean") {
     effect_size = alpha2/beta2 - alpha1/beta1
   } else if(de_type == "variance"){
@@ -350,7 +314,7 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
   df2 <- df2[df2$carrier_scale > 0, , drop = FALSE]
   formula = as.formula( paste0('sum_cts~offset(log(carrier_scale))+', paste(varb, collapse = '+'))) 
   
-  # Fit glm model for each group
+  # fit glm model for each group
   sef_gp1 = tryCatch(glm( formula, family = poisson(link="log"), data = df1))  
   sef_gp2 = tryCatch(glm( formula, family = poisson(link="log"), data = df2))  
   # handle issue for overfitting
@@ -359,21 +323,21 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
     message("Convergence issue detected in at least one model. Retrying with reduced columns...")
     p = p - 1 # we test for one fewer 
     print(paste0("new test with p = ", p))
-    varb <- paste0("X_", 1:p)
-    X <- rep(1, length(est_midpoints))
+    varb = paste0("X_", 1:p)
+    X = rep(1, length(est_midpoints))
     for (dim in 1:p) {
-      X <- cbind(X, tk^dim)
+      X = cbind(X, tk^dim)
     }
-    formula <- as.formula(paste0("sum_cts ~ offset(log(carrier_scale)) + ", paste(varb, collapse = " + "))) # rebuild formula
-    df1_reduced <- df1[, -ncol(df1), drop = FALSE] # drop last columns
-    df2_reduced <- df2[, -ncol(df2), drop = FALSE]
+    formula = as.formula(paste0("sum_cts ~ offset(log(carrier_scale)) + ", paste(varb, collapse = " + "))) # rebuild formula
+    df1_reduced = df1[, -ncol(df1), drop = FALSE] # drop last columns
+    df2_reduced = df2[, -ncol(df2), drop = FALSE]
     
-    sef_gp1 <- tryCatch(glm(formula, family = poisson(link = "log"), data = df1_reduced),
+    sef_gp1 = tryCatch(glm(formula, family = poisson(link = "log"), data = df1_reduced),
                         error = function(e) {
                           message("Retry for sef_gp1 failed: ", conditionMessage(e))
                           return(NULL)
                         })
-    sef_gp2 <- tryCatch(glm(formula, family = poisson(link = "log"), data = df2_reduced),
+    sef_gp2 = tryCatch(glm(formula, family = poisson(link = "log"), data = df2_reduced),
                         error = function(e) {
                           message("Retry for sef_gp2 failed: ", conditionMessage(e))
                           return(NULL)
@@ -386,7 +350,7 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
   sef_df2 = as.vector( carrier_est * exp(X %*% beta_est2) )
   
   
-  # Plot differences
+  # plot differences
   df_plot = data.frame(
     est_midpoints = rep(est_midpoints, 2),
     sef_value = c(sef_df1, sef_df2),
@@ -410,7 +374,7 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
   G_2 = t(X) %*% ( sef_df2 * X)*cellSum2/sum(sef_df2) 
   G_2 
   pairwise_diff = outer( est_midpoints, est_midpoints, "-")
-  M <- dnorm(pairwise_diff, sd = binwidth) / n_total_cells
+  M = dnorm(pairwise_diff, sd = binwidth) / n_total_cells
   Z11 = t(X) %*% ( diag(K) -  cellSum1*as.vector( exp(X %*% beta_est1))*M/sum(sef_df1) ) # Z_{t1, j} for j in T1
   Z12 = t(X) %*% ( -cellSum1*as.vector( exp(X %*% beta_est1))*M/sum(sef_df1) ) # For j in T2
   Z21 = t(X) %*% ( -cellSum2*as.vector(exp(X %*% beta_est2))*M/sum(sef_df2)  ) # For j in T1
@@ -423,72 +387,16 @@ simulatePGRealistic = function(repID = NULL, de_type = "mean", p = 2,  K = NULL,
   Smat2_ave = Smat2/m_vec2
   Smat1_centered = t(Smat1_ave) - colSums(Smat1)/sum(m_vec1)  
   Smat2_centered = t(Smat2_ave) - colSums(Smat2)/sum(m_vec2)
-  tmp1 = diag(S1sum) - 2* t(Smat1)%*%Smat1_ave + t(Smat1_ave)%*%Smat1_ave + 
-    Smat1_centered%*%( t(Smat1_centered) * m_vec1^2 )
-  tmp2 = diag(S2sum) - 2* t(Smat2)%*%Smat2_ave + t(Smat2_ave)%*%Smat2_ave + 
-    Smat2_centered%*%( t(Smat2_centered) * m_vec2^2 )
+  tmp1 = diag(S1sum) - 2* t(Smat1)%*%Smat1_ave + t(Smat1_ave)%*%Smat1_ave + Smat1_centered%*%( t(Smat1_centered) * m_vec1^2 )
+  tmp2 = diag(S2sum) - 2* t(Smat2)%*%Smat2_ave + t(Smat2_ave)%*%Smat2_ave + Smat2_centered%*%( t(Smat2_centered) * m_vec2^2 )
   Cov_bar = L1 %*% tmp1 %*% t(L1) + L2 %*% tmp2 %*% t(L2)
   chi_stat1 = as.numeric( beta_diff[-1]%*%solve(Cov_bar[-1, -1], beta_diff[-1]) ) #marginal distribution test
   pval_1 = 1 - pchisq( chi_stat1, df = p)
   print(pval_1)
   
-  # Model without intercept effects
-  tc_1 = NULL
-  tc_2 = NULL
-  Y1_suffi = NULL #used for computing the sample mean of raw counts (Tbar)
-  Y2_suffi = NULL #used for computing the sample mean of raw counts (Tbar)
-  for (dim in 1:p){
-    tc_1 = cbind(tc_1, tk^dim)
-    tc_2 = cbind(tc_2, tk^dim)
-    Y1_suffi = cbind(Y1_suffi, y1^dim) 
-    Y2_suffi = cbind(Y2_suffi, y2^dim)
-  }  
-  T_c1 = colMeans(Y1_suffi)
-  T_c2 = colMeans(Y2_suffi)
-  X_t1 = t( t(tc_1) - T_c1 ) #centered design matrix based on mean of group 1
-  X_t2 = t( t(tc_2) - T_c2 ) #centered design matrix based on mean of group 2
-  X_t1f = cbind(1, X_t1)
-  X_t2f = cbind(1, X_t2) 
-  colnames(X_t1f) = c("Intercept", varb)  
-  colnames(X_t2f) = c("Intercept", varb) 
-  df1_c = as.data.frame(cbind( S1sum, carrier_scale1, X_t1f))
-  df2_c = as.data.frame(cbind( S2sum, carrier_scale2, X_t2f))
-  colnames(df1_c)[1] = "sum_cts"
-  colnames(df1_c)[2] = "carrier_scale"
-  colnames(df2_c)[1] = "sum_cts" 
-  colnames(df2_c)[2] = "carrier_scale"
-  df1_c <- df1_c[df1_c$carrier_scale > 0, , drop = FALSE]
-  df2_c <- df2_c[df2_c$carrier_scale > 0, , drop = FALSE]
-  formula = as.formula( paste0('sum_cts~offset(log(carrier_scale))+', paste(varb, collapse = '+'))) 
-  
-  # Fit glm model for each group
-  sef_gp1_ct = tryCatch(glm( formula, family = poisson(link="log"), data = df1_c))  # Some numerical issue
-  sef_gp2_ct = tryCatch(glm( formula, family = poisson(link="log"), data = df2_c))  # Some numerical issue
-  beta_est1_c = as.vector(sef_gp1_ct$coefficients)
-  beta_est2_c = as.vector(sef_gp2_ct$coefficients)
-  beta_diff_c = beta_est1_c - beta_est2_c
-  beta_diff_c
-  sef_df1_c = as.vector( carrier_est * exp(X_t1f %*% beta_est1_c) )
-  sef_df2_c = as.vector( carrier_est * exp(X_t2f %*% beta_est2_c) )
-  
-  # 3. Inference without intercept effects
-  G_t1 = t(X_t1) %*%  ( sef_df1_c * X_t1)*cellSum1/sum(sef_df1_c)
-  G_t1
-  G_t2 = t(X_t2) %*% ( sef_df2_c * X_t2)*cellSum2/sum(sef_df2_c) 
-  G_t2  
-  Z11c = t(X_t1)%*% (diag(K) - cellSum1*as.vector( exp(X_t1f %*% beta_est1_c))*M/sum(sef_df1_c) )
-  Z12c = t(X_t1)%*%( -cellSum1*as.vector( exp(X_t1f %*% beta_est1_c))*M/sum(sef_df1_c) )
-  Z21c = t(X_t2)%*%( -cellSum2*as.vector( exp(X_t2f %*% beta_est2_c))*M/sum(sef_df2_c) )
-  Z22c = t(X_t2)%*%( diag(K) - cellSum2*as.vector( exp(X_t2f %*% beta_est2_c))*M/sum(sef_df2_c) )
-  L1c = solve(G_t1, Z11c) - solve(G_t2, Z21c)
-  L2c = solve(G_t1, Z12c) - solve(G_t2, Z22c)
-  Cov_bar_sub = L1c%*%tmp1%*%t(L1c) + L2c%*%tmp2%*%t(L2c)
-  chi_stat3 = beta_diff_c[-1]%*%solve(Cov_bar_sub, beta_diff_c[-1])
-  pval_3 = 1 - pchisq( chi_stat3, df = p) 
-  
   return(list(de_type = de_type, effect_size = effect_size, y_agg = y_agg, est_midpoints = est_midpoints, carrier_est = carrier_est, binwidth = binwidth, K = K, y1 = y1, y2 = y2,
-              beta_est1 = beta_est1, beta_est2 = beta_est2, beta_diff = beta_diff, beta_est1_c = beta_est1_c, beta_est2_c = beta_est2_c, beta_diff_c = beta_diff_c,
-              sef_df1 = sef_df1, sef_df2 = sef_df2, sef_df1_c = sef_df1_c, sef_df2_c = sef_df2_c, pval_1 = pval_1, pval_3 = pval_3, Cov_1 = Cov_bar, Cov_3 = Cov_bar_sub,
+              beta_est1 = beta_est1, beta_est2 = beta_est2, beta_diff = beta_diff,
+              sef_df1 = sef_df1, sef_df2 = sef_df2, pval_1 = pval_1, Cov_1 = Cov_bar,
               carrier_plt = carrier_plot, comparison_plt = plt, breaks = breaks))
 }
 #  ---- ZERO-INFLATED NEGATIVE BINOMIAL  ----
@@ -497,10 +405,10 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   if (de_type == "dispersion") {
     theta2 = b_theta*theta
     effect_size = theta2 - theta
-  } else if(de_type == "mixture"){
-    effect_size = b_pi
-  } else{
+  } else if(de_type == "mean"){
     effect_size = mu2 - mu
+  } else{
+    stop(paste0("Please use valid de_type."))
   }
   seed = idx + 62
   simData = simu_zinb_vary_cellcts(n1 = n1, n2 = n2, lower = lower, upper = upper, mu = mu, mu2 = mu2, sigma_sq = sigma_sq, theta = theta, pi = pi, pi2 = pi2, 
@@ -523,9 +431,7 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
     est_midpoints = est_grid
     K = length(est_midpoints)
     print(paste0("Number of midpoints K not specified. Using total number of boundary points in pooled data as new K: ", K))
-    
     carrier_est = continuous_discrete_kde(y = y_agg, eval_points = est_midpoints, bw = 0.05)
-    
   } else{
     est_grid = seq(l, u, length.out = K + 1)
     est_midpoints  = (est_grid[-1] + est_grid[-length(est_grid)])/2
@@ -533,13 +439,13 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
     carrier_est = carrier$y
   }
   
-  hist_df <- data.frame(y_agg = y_agg)
-  breaks <- seq(l, u, length.out = K + 2)
-  line_df <- data.frame(x = est_midpoints, y = carrier_est)
+  hist_df = data.frame(y_agg = y_agg)
+  breaks = seq(l, u, length.out = K + 2)
+  line_df = data.frame(x = est_midpoints, y = carrier_est)
   
   carrier_plot = NULL
   if(plot_flag == T){
-    carrier_plot <- ggplot(hist_df, aes(x = y_agg)) +
+    carrier_plot = ggplot(hist_df, aes(x = y_agg)) +
       geom_histogram(aes(y = ..density..),
                      breaks = breaks,
                      fill = "skyblue1", alpha = 0.75,
@@ -562,7 +468,7 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   Smat = rbind(Smat1, Smat2) #combine two bin matrices, used in SEF regression
   
   print("running SEF regression model")
-  #Construct design matrix
+  # construct design matrix
   tk = est_midpoints
   X = rep(1, length(est_midpoints))
   for (dim in 1:p){
@@ -577,10 +483,10 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   if (unique_pts < 75) {
     binwidth = median(diff(est_midpoints))
   }else{
-    binwidth = diff(est_midpoints)[1] #is identical to (u - l)/K in large enough settings
+    binwidth = diff(est_midpoints)[1] # is identical to (u - l)/K in large enough settings
   }
   
-  #setup for modeling
+  # setup for modeling
   cellSum1 = length(unlist(y1))
   cellSum2 = length(unlist(y2))
   scale_factor1 = cellSum1/sum(carrier_est) 
@@ -589,15 +495,15 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   carrier_scale2 = carrier_est*scale_factor2
   df1 = as.data.frame(cbind( S1sum, carrier_scale1, X))
   df2 = as.data.frame(cbind( S2sum, carrier_scale2, X))
-  df1 <- df1[df1$carrier_scale > 0, , drop = FALSE]
-  df2 <- df2[df2$carrier_scale > 0, , drop = FALSE]
+  df1 = df1[df1$carrier_scale > 0, , drop = FALSE]
+  df2 = df2[df2$carrier_scale > 0, , drop = FALSE]
   colnames(df1)[1] = "sum_cts"
   colnames(df1)[2] = "carrier_scale"
   colnames(df2)[1] = "sum_cts" 
   colnames(df2)[2] = "carrier_scale"
   formula = as.formula( paste0('sum_cts~offset(log(carrier_scale))+', paste(varb, collapse = '+'))) 
   
-  # Fit glm model for each group
+  # fit glm model for each group
   sef_gp1 = tryCatch(glm( formula, family = poisson(link="log"), data = df1))  
   sef_gp2 = tryCatch(glm( formula, family = poisson(link="log"), data = df2))  
   convergence_issue <- (!is.null(sef_gp1) && !sef_gp1$converged) || (!is.null(sef_gp2) && !sef_gp2$converged)
@@ -605,21 +511,21 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
     message("Convergence issue detected in at least one model. Retrying with reduced columns...")
     p = p - 1 # we test for one fewer 
     print(paste0("new test with p = ", p))
-    varb <- paste0("X_", 1:p)
-    X <- rep(1, length(est_midpoints))
+    varb = paste0("X_", 1:p)
+    X = rep(1, length(est_midpoints))
     for (dim in 1:p) {
-      X <- cbind(X, tk^dim)
+      X = cbind(X, tk^dim)
     }
-    formula <- as.formula(paste0("sum_cts ~ offset(log(carrier_scale)) + ", paste(varb, collapse = " + "))) # rebuild formula
-    df1_reduced <- df1[, -ncol(df1), drop = FALSE] 
-    df2_reduced <- df2[, -ncol(df2), drop = FALSE]
+    formula = as.formula(paste0("sum_cts ~ offset(log(carrier_scale)) + ", paste(varb, collapse = " + "))) # rebuild formula
+    df1_reduced = df1[, -ncol(df1), drop = FALSE] 
+    df2_reduced = df2[, -ncol(df2), drop = FALSE]
     
-    sef_gp1 <- tryCatch(glm(formula, family = poisson(link = "log"), data = df1_reduced),
+    sef_gp1 = tryCatch(glm(formula, family = poisson(link = "log"), data = df1_reduced),
                         error = function(e) {
                           message("Retry for sef_gp1 failed: ", conditionMessage(e))
                           return(NULL)
                         })
-    sef_gp2 <- tryCatch(glm(formula, family = poisson(link = "log"), data = df2_reduced),
+    sef_gp2 = tryCatch(glm(formula, family = poisson(link = "log"), data = df2_reduced),
                         error = function(e) {
                           message("Retry for sef_gp2 failed: ", conditionMessage(e))
                           return(NULL)
@@ -632,7 +538,7 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   sef_df2 = as.vector( carrier_est * exp(X %*% beta_est2) )
   
   
-  # Plot differences
+  # plot differences
   df_plot = data.frame(
     est_midpoints = rep(est_midpoints, 2),
     sef_value = c(sef_df1, sef_df2),
@@ -656,7 +562,7 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   G_2 = t(X) %*% ( sef_df2 * X)*cellSum2/sum(sef_df2)
   G_2
   pairwise_diff = outer( est_midpoints, est_midpoints, "-")
-  M <- dnorm(pairwise_diff, sd = binwidth) / n_total_cells
+  M = dnorm(pairwise_diff, sd = binwidth) / n_total_cells
   Z11 = t(X) %*% ( diag(K) -  cellSum1*as.vector( exp(X %*% beta_est1))*M/sum(sef_df1) ) # Z_{t1, j} for j in T1
   Z12 = t(X) %*% ( -cellSum1*as.vector( exp(X %*% beta_est1))*M/sum(sef_df1) ) # For j in T2
   Z21 = t(X) %*% ( -cellSum2*as.vector(exp(X %*% beta_est2))*M/sum(sef_df2)  ) # For j in T1
@@ -669,10 +575,8 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   Smat2_ave = Smat2/m_vec2
   Smat1_centered = t(Smat1_ave) - colSums(Smat1)/sum(m_vec1)
   Smat2_centered = t(Smat2_ave) - colSums(Smat2)/sum(m_vec2)
-  tmp1 = diag(S1sum) - 2* t(Smat1)%*%Smat1_ave + t(Smat1_ave)%*%Smat1_ave +
-    Smat1_centered%*%( t(Smat1_centered) * m_vec1^2 )
-  tmp2 = diag(S2sum) - 2* t(Smat2)%*%Smat2_ave + t(Smat2_ave)%*%Smat2_ave +
-    Smat2_centered%*%( t(Smat2_centered) * m_vec2^2 )
+  tmp1 = diag(S1sum) - 2* t(Smat1)%*%Smat1_ave + t(Smat1_ave)%*%Smat1_ave + Smat1_centered%*%( t(Smat1_centered) * m_vec1^2 )
+  tmp2 = diag(S2sum) - 2* t(Smat2)%*%Smat2_ave + t(Smat2_ave)%*%Smat2_ave + Smat2_centered%*%( t(Smat2_centered) * m_vec2^2 )
   Cov_bar = L1 %*% tmp1 %*% t(L1) + L2 %*% tmp2 %*% t(L2)
   
   chi_stat1 = as.numeric( beta_diff[-1]%*%solve(Cov_bar[-1, -1], beta_diff[-1]) ) #marginal distribution test
@@ -680,9 +584,7 @@ simulateZINB = function(n1, n2, de_type = "dispersion", idx, mu, mu2, sigma_sq =
   print(pval_1)
   return(list(effect_size = effect_size, de_type = de_type, p = p, K = K, n1 = n1, n2 = n2, binwidth = binwidth, X = X, y_agg = y_agg, y1 = y1, y2 = y2,
               carrier_est = carrier_est, est_midpoints = est_midpoints, carrier_scale1 = carrier_scale1, carrier_scale2 = carrier_scale2, sef_gp1 = sef_gp1, sef_gp2 = sef_gp2,
-              sef_df1 = sef_df1, sef_df2 = sef_df2, 
-              pval_1 = pval_1, chi_stat1 = chi_stat1, Cov_1 = Cov_bar, 
-              beta_diff = beta_diff,
+              sef_df1 = sef_df1, sef_df2 = sef_df2, pval_1 = pval_1, chi_stat1 = chi_stat1, Cov_1 = Cov_bar, beta_diff = beta_diff,
               carrier_plt = carrier_plot, comparison_plt = plt))
 }
 ########## 4. COMPETING METHOD FUNCTIONS ##########
@@ -699,15 +601,14 @@ simulateMoMRealistic = function(distribution = c("pg", "zinb"), de_type = "mean"
   
   if (distribution == "pg") {
     # simu_poigamma uses alpha1, alpha2, beta1, beta2
-    simData <- simu_poigamma_vary_cellcts(seed = seed, lower = 300, upper = 1000, n1 = n1, n2 = n2,...)
+    simData = simu_poigamma_vary_cellcts(seed = seed, lower = 300, upper = 1000, n1 = n1, n2 = n2,...)
   } else if (distribution == "zinb"){
-    # simu_zinb uses mu, mu2, theta, b_theta, b_pi, pi2 for mixture
-    effect_size <- switch(de_type,
+    # simu_zinb uses mu, mu2, theta, b_theta for dispersion
+    effect_size = switch(de_type,
                           dispersion = {
                             theta2 <- b_theta * theta
                             theta2 - theta
                           },
-                          mixture = extra_args$b_pi,
                           mean = {
                             warning("Mean shift inherently includes variance shift")
                             mu2 - mu
@@ -763,15 +664,14 @@ simulatePseudobulkRealistic = function(distribution = c("pg", "zinb"), test_type
   
   if (distribution == "pg") {
     # simu_poigamma uses alpha1, alpha2, beta1, beta2
-    simData <- simu_poigamma_vary_cellcts(seed = seed, lower = lower, upper = upper, n1 = n1, n2 = n2,...)
+    simData = simu_poigamma_vary_cellcts(seed = seed, lower = lower, upper = upper, n1 = n1, n2 = n2,...)
   } else if (distribution == "zinb"){
-    # simu_zinb uses mu, mu2, theta, b_theta, b_pi, pi2 for mixture
-    effect_size <- switch(de_type,
+    # simu_zinb uses mu, mu2, theta, b_theta for dispersion
+    effect_size = switch(de_type,
                           dispersion = {
                             theta2 <- b_theta * theta
                             theta2 - theta
                           },
-                          mixture = b_pi,
                           mean = {
                             warning("Mean shift inherently includes variance shift")
                             mu2 - mu

@@ -39,10 +39,6 @@ which illustrate carrier densities, individual-level densities, and group-wise d
 
 In the remaining files, we provide scripts run on the command line for the pseudobulk data and related comparisons. 
 
-*Note on enrichment results: The Gene Ontology resource has updated its term counts and annotations since the original downstream analysis was conducted.
-As a result, a few of the pathways of interest have more general or specific distinctions of our original pathways.
-This includes two pathways: cytokine production in monocytes and regulation of protein complex assembly in CD4+ T-cells. Despite this, our results retain consistency in interpretation.*
-
 
 | File Name | Format     | Description |
 |---------------|----------|------------|

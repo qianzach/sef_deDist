@@ -118,8 +118,8 @@ gamma_params = function(mu, V) {
   # input: mean; variance
   # output: alpha; beta
   if(V <= mu) stop("Variance must be greater than the mean for overdispersion.")
-  alpha <- mu^2/(V - mu)
-  beta  <- mu/(V - mu)
+  alpha = mu^2/(V - mu)
+  beta  = mu/(V - mu)
   return(list(alpha = alpha, beta = beta))
 }
 
@@ -132,12 +132,12 @@ mom_cov_diff_cell_cts = function(Y, p) {
   # input: list of arrays of expression values; moments to test
   # output: covariance matrix (p x p)
   n = length(Y)  # number of individuals (length of the list)
-  total_samples <- 0
-  overall_sum <- rep(0, p)  # sum of overall mean
-  within_var_sum <- matrix(0, nrow = p, ncol = p)  # within-individual variance contributions
-  between_var_sum <- matrix(0, nrow = p, ncol = p)  # between-individual variance contributions 
+  total_samples = 0
+  overall_sum = rep(0, p)  # sum of overall mean
+  within_var_sum = matrix(0, nrow = p, ncol = p)  # within-individual variance contributions
+  between_var_sum = matrix(0, nrow = p, ncol = p)  # between-individual variance contributions 
   mean_list = matrix(0, nrow = n, ncol = p)  # matrix of p moments for each individual
-  m_vector <- numeric(n)  # individual-wise cell counts
+  m_vector = numeric(n)  # individual-wise cell counts
   
   # within-individual variance
   for (i in 1:n) {  # iterate through individual

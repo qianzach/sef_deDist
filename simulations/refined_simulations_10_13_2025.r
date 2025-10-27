@@ -74,7 +74,7 @@ output <- pbmclapply(1:maxIter, function(i) {
     return(NULL)
   })
 }, mc.cores = 4)
-pvVec_margin <- sapply(output, function(x) x$pval_1)
+pvVec_margin = sapply(output, function(x) x$pval_1)
 gg_qqplot(unlist(pvVec_margin)) + ggtitle("ZINB Model")
 realistic_qqplot = gg_qqplot(unlist(pvVec_margin)) + ggtitle("ZINB Model")
 print(realistic_qqplot)
@@ -92,13 +92,13 @@ n1 = 100; n2 = 100
 p = 2
 repID = 77 
 
-mu1  <- 10
-V1   <- 15
-params1 <- gamma_params(mu1, V1)
-alpha1 <- params1$alpha
-beta1  <- params1$beta
-target_means <- seq(10, 12, length.out = 15)
-target_variance <- 15 # must be > any target mean
+mu1 = 10
+V1 = 15
+params1 = gamma_params(mu1, V1)
+alpha1 = params1$alpha
+beta1  = params1$beta
+target_means = seq(10, 12, length.out = 15)
+target_variance = 15 # must be > any target mean
 if(any(target_means >= target_variance)) {
   stop("Each target mean must be less than the target variance.")
 }
@@ -123,12 +123,12 @@ combine = function(x, ...){
   mapply(rbind, x, ..., SIMPLIFY = FALSE)
 } 
 for (idx in 1:(dim(result_df)[1])) {
-  alpha2 <- alpha2s[idx]
-  beta2 <- beta2s[idx]
+  alpha2 = alpha2s[idx]
+  beta2 = beta2s[idx]
   print(paste0("mean =", result_df$target_mean[idx], ", variance = ", result_df$target_variance[idx]))
   
   print("SEF:")
-  output <- foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
+  output = foreach(i = 1:maxIter, .packages = c("ggplot2")) %dopar% {
     simulatePGRealistic(alpha1 = alpha1, alpha2 = alpha2, beta1 = beta1, beta2 = beta2, 
                         n1 = n1, n2 = n2,repID = repID,de_type = de_type, p = p, K = NULL, idx = i)
   }
@@ -147,10 +147,10 @@ for (idx in 1:(dim(result_df)[1])) {
     list(t_testPB = t_testPB, ksPB = ksPB)
   }
   
-  pvMat_margin <- cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
-  pvMat_mom  <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin = cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
+  pvMat_mom  = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 print(output$binwidth)
 stopCluster(cl)
@@ -197,13 +197,13 @@ tau1 = 2; tau2 = 2
 n1 = 100; n2 = 100
 p = 2
 repID = 77 
-mu1  <- 10
-V1   <- 15
-params1 <- gamma_params(mu1, V1)
-alpha1 <- params1$alpha
-beta1  <- params1$beta
-target_means <- 10
-target_variance <- seq(15, 23, length.out = 10)
+mu1 = 10
+V1 = 15
+params1 = gamma_params(mu1, V1)
+alpha1 = params1$alpha
+beta1  = params1$beta
+target_means = 10
+target_variance = seq(15, 23, length.out = 10)
 if(any(target_means >= target_variance)) { # means must be less than the constant variance
   stop("Each target mean must be less than the target variance.")
 }

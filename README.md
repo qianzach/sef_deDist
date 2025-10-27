@@ -66,7 +66,7 @@ In this section, we overview the formatted data objects used in our simulations 
 | `pb_CELLTYPE_sObj`         | `.RDS`   | Pseudobulked Seurat object after using standard `AggregateExpression()` |
 | `sef_CELLTYPE_fixed_pvals`         | `.csv`   | Cell type-specific differentially distributed genes with adjusted p-values (Bonferroni) using SEF regression |
 | `pb_CELLTYPE_10_15_2025`         | `.csv`   | Cell type specific DEGs with adjusted p-values (Bonferroni) pseudobulked data and log fold change values |
-| `all_CELLTYPE_interesting_pathways`         | `.csv`   | Includes `clusterProfiler` enrichment analysis results and used to re-construct barplots from original analysis |
+| `CELLTYPE_enriched_pathways`       | `.csv`   | Includes `clusterProfiler` enrichment analysis results and used to re-construct barplots from original analysis |
 | `perez_validation_DEGs`         | `.csv`   | File including DEGs from original Perez et al (2022) study's Supplementary Table 3 |
 
 ---

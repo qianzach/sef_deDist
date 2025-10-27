@@ -14,7 +14,7 @@ The data used in our analysis for each cell type can be accessed via Zenodo usin
 ---
 
 ### 2. File Overview
-We briefly explain the file purpose in our data analysis and simulations, which are split into the `RDA` and `simulations` directories in the repository.
+We briefly explain the file purpose in our data analysis and simulations, which are split into the `RDA` and `simulations` directories in the repository. In each file, we provide a brief description for each of the functions used.
 
 #### Simulations
 The simulations section is split into three `R` files. We have a main file that defines all functions used in simulations. The remaining two files contain the main simulation results and that from the supplementary materials.

@@ -13,7 +13,7 @@ source("./density_estimation/sef_lupus_results/exploration/to_github_repo/main_g
 
 ####### load data ####### 
 # cell_type = "cM"
-cell_type = "cd8"
+# cell_type = "cd8"
 # cell_type = "cd4"
 covariate_df = read.csv("./density_estimation/sef_lupus_results/exploration/to_github_repo/DATA/covariate_data.csv")
 
@@ -30,9 +30,10 @@ if(cell_type == "cd4"){
   exprMatReal = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cM_exprMatReal.RDS")
   donors_to_use_per_gene = readRDS("./density_estimation/sef_lupus_results/exploration/to_github_repo/objects/cM_donors_for_genes_processed.RDS") 
 }
-# specific_genes = c("S100A9", "ISG15","CYBA", "S100A4") # cM; S.7: S100A4
-specific_genes = c("HLA-A","NKG7", "LGALS1", "MT2A", "LTB") # cd8; S.7: MT2A, LTB
-# specific_genes = c("B2M", "IL32","KLF6", "TSC22D3") # cd4; S.7: TSC22D3
+# specific_genes = c("S100A9", "ISG15","CYBA", "S100A4", "S100A8") # cM; S.7: S100A4
+# specific_genes = c("HLA-A","NKG7", "LGALS1", "MT2A", "LTB") # cd8; S.7: MT2A, LTB
+# specific_genes = c("B2M", "IL32","LTB", "TSC22D3", "KLF6") # cd4; S.7: TSC22D3
+
 don = "1101"
 genes_of_interest = specific_genes
 p = 2

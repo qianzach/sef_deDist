@@ -252,10 +252,10 @@ for (idx in 1:(dim(result_df)[1])) {
     list(t_testPB = t_testPB, ksPB = ksPB)
   }
   
-  pvMat_margin <- cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
-  pvMat_mom  <- cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
-  pvMat_ttest <- cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
-  pvMat_ks <- cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
+  pvMat_margin = cbind(pvMat_margin, sapply(output, function(x) x$pval_1))
+  pvMat_mom = cbind(pvMat_mom, sapply(outputMoM, function(x) x$pval))
+  pvMat_ttest = cbind(pvMat_ttest, sapply(outputPB, function(x) x$t_testPB$pval))
+  pvMat_ks = cbind(pvMat_ks, sapply(outputPB, function(x) x$ksPB$pval))
 }
 stopCluster(cl)
 q = 0.05 

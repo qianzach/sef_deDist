@@ -71,10 +71,8 @@ DataType = "pg"
 maxIter = 300 
 n1 = 100; n2 = 100
 p = 3
-alpha2 = 20
-alpha1 = 20
-beta1 = 2
-beta2 = 2
+alpha1 = 20; alpha2 = 20
+beta1 = 2; beta2 = 2
 repID = 77  
 pvVec_margin = NULL 
 pv_list = pbmclapply(1:maxIter, function(i) {
@@ -109,10 +107,8 @@ DataType = "pg"
 maxIter = 300 
 n1 = 100; n2 = 200
 p = 2
-alpha2 = 20
-alpha1 = 20
-beta1 = 2
-beta2 = 2
+alpha1 = 20; alpha2 = 20
+beta1 = 2; beta2 = 2
 repID = 77  
 pvVec_margin = NULL 
 pv_list = pbmclapply(1:maxIter, function(i) {
@@ -246,7 +242,7 @@ if(any(target_means >= target_variance)) { # means must be less than the constan
   stop("Each target mean must be less than the target variance.")
 }
 alpha2s = target_means^2 / (target_variance - target_means)
-beta2s = target_means / (target_variance - target_means)
+beta2s  = target_means / (target_variance - target_means)
 result_df = data.frame(
   target_mean = target_means,
   target_variance = target_variance,
